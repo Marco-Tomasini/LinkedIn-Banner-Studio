@@ -5,7 +5,7 @@ Gerador visual de banners para LinkedIn, voltado a perfis de tecnologia. O proje
 ## Recursos
 
 - Seis modelos de composição para o banner.
-- Quatro estilos de cores.
+- Quatro estilos de cores prontos e uma paleta personalizada com fundo, destaques e texto configuráveis.
 - Nome, cargo, instituição e tecnologias personalizáveis.
 - Logos por upload ou URL para a instituição e cada tecnologia, com ajuste individual de `50%` a `300%` ao lado da prévia.
 - Opção de selos com logos ampliadas.
