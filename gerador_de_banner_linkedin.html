@@ -132,10 +132,20 @@
                 </div>
             </div>
             
-            <button id="downloadBtn" class="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2.5 font-semibold text-white shadow-lg shadow-cyan-500/25 transition-all duration-200 hover:from-cyan-400 hover:to-blue-500 sm:w-auto rounded-xl transform hover:-translate-y-0.5 active:translate-y-0">
-                <i class="fa-solid fa-download"></i>
-                <span>Baixar Imagem PNG (1584x396)</span>
-            </button>
+            <div class="flex w-full items-center gap-2 sm:w-auto">
+                <label for="downloadScale" class="sr-only">Escala de exportação</label>
+                <select id="downloadScale" class="min-h-11 shrink-0 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-semibold text-cyan-300 outline-none transition focus:border-cyan-500" title="Escolha a resolução do PNG">
+                    <option value="1">1×</option>
+                    <option value="2">2×</option>
+                    <option value="3">3×</option>
+                    <option value="4">4×</option>
+                    <option value="5">5×</option>
+                </select>
+                <button id="downloadBtn" class="flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2.5 font-semibold text-white shadow-lg shadow-cyan-500/25 transition-all duration-200 hover:from-cyan-400 hover:to-blue-500 sm:flex-none sm:px-5 transform hover:-translate-y-0.5 active:translate-y-0">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Baixar PNG</span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -266,6 +276,10 @@
                         <label class="relative inline-flex shrink-0 items-center cursor-pointer"><input type="checkbox" id="toggleAllLogosOnly" class="sr-only peer"><div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div></label>
                     </div>
                     <div class="flex items-center justify-between gap-4 pt-3 border-t border-slate-800">
+                        <span class="flex-1 text-xs font-medium leading-relaxed text-slate-300">Selos: somente logos (sem texto)</span>
+                        <label class="relative inline-flex shrink-0 items-center cursor-pointer"><input type="checkbox" id="toggleLogosWithoutLabels" class="sr-only peer"><div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-violet-500"></div></label>
+                    </div>
+                    <div class="flex items-center justify-between gap-4 pt-3 border-t border-slate-800">
                         <span class="flex-1 text-xs font-medium leading-relaxed text-slate-300">Mostrar instituição no subtítulo</span>
                         <label class="relative inline-flex shrink-0 items-center cursor-pointer"><input type="checkbox" id="toggleInstitutionSubtitle" class="sr-only peer"><div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div></label>
                     </div>
@@ -301,9 +315,9 @@
     </div>
 
     <script>
-        const canvas = document.getElementById('bannerCanvas');
+        let canvas = document.getElementById('bannerCanvas');
         const bannerPreview = document.getElementById('bannerPreview');
-        const ctx = canvas.getContext('2d');
+        let ctx = canvas.getContext('2d');
 
         // Form elements
         const inputName = document.getElementById('inputName');
@@ -317,9 +331,11 @@
         const toggleCodeBg = document.getElementById('toggleCodeBg');
         const toggleAvatarGuide = document.getElementById('toggleAvatarGuide');
         const toggleAllLogosOnly = document.getElementById('toggleAllLogosOnly');
+        const toggleLogosWithoutLabels = document.getElementById('toggleLogosWithoutLabels');
         const toggleInstitutionSubtitle = document.getElementById('toggleInstitutionSubtitle');
         const linkedinHeadlineTip = document.getElementById('linkedinHeadlineTip');
         const downloadBtn = document.getElementById('downloadBtn');
+        const downloadScale = document.getElementById('downloadScale');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
         const zoomInBtn = document.getElementById('zoomInBtn');
@@ -384,11 +400,13 @@
             }
         };
 
-        function drawBanner(includeGuide = toggleAvatarGuide.checked) {
+        function drawBanner(includeGuide = toggleAvatarGuide.checked, renderScale = 1) {
             const config = PRESETS[currentPreset];
-            const width = canvas.width;
-            const height = canvas.height;
+            const width = canvas.width / renderScale;
+            const height = canvas.height / renderScale;
 
+            ctx.save();
+            ctx.scale(renderScale, renderScale);
             ctx.clearRect(0, 0, width, height);
 
             // 1. Background Gradient
@@ -399,9 +417,11 @@
             ctx.fillStyle = bgGrd;
             ctx.fillRect(0, 0, width, height);
 
+            const logoOnly = toggleAllLogosOnly.checked || toggleLogosWithoutLabels.checked;
+            const hideBadgeText = toggleLogosWithoutLabels.checked;
             const items = [
-                { title: inputInstitution.value.trim() || "Instituição", sub: "Formação", type: "institution", image: institutionImage, logoOnly: toggleAllLogosOnly.checked },
-                ...getSkills().map(skill => ({ ...skill, image: skillImages.get(skill.key) || null, logoOnly: toggleAllLogosOnly.checked }))
+                { title: inputInstitution.value.trim() || "Instituição", sub: "Formação", type: "institution", image: institutionImage, logoOnly, hideBadgeText },
+                ...getSkills().map(skill => ({ ...skill, image: skillImages.get(skill.key) || null, logoOnly, hideBadgeText }))
             ];
             drawSelectedTemplate(config, items, width, height);
 
@@ -427,6 +447,7 @@
                 ctx.fillText('(Espaço reservado pelo LinkedIn)', 200, 295);
                 ctx.textAlign = 'left';
             }
+            ctx.restore();
         }
 
         function drawSelectedTemplate(config, items, width, height) {
@@ -504,10 +525,18 @@
 
         function drawBadgeRow(config, items, startX, badgeY, availableWidth) {
             const itemCount = Math.max(items.length, 1);
-            const badgeWidth = availableWidth / itemCount;
             const logoGallery = items.every(item => item.logoOnly);
+            const iconOnlyGallery = logoGallery && items.every(item => item.hideBadgeText);
+            const badgeWeights = items.map(item => {
+                const isHorizontalImage = item.image
+                    && item.image.naturalWidth / item.image.naturalHeight > 1.35;
+                return iconOnlyGallery && isHorizontalImage ? 1.55 : 1;
+            });
+            const totalBadgeWeight = badgeWeights.reduce((total, weight) => total + weight, 0) || itemCount;
+            let usedWidth = 0;
             items.forEach((item, index) => {
-                const badgeX = startX + badgeWidth * index;
+                const badgeWidth = availableWidth * badgeWeights[index] / totalBadgeWeight;
+                const badgeX = startX + usedWidth;
                 const badgeCenterX = badgeX + badgeWidth / 2;
                 if (index > 0) {
                     ctx.strokeStyle = config.dividerColor;
@@ -515,22 +544,31 @@
                     ctx.beginPath();
                     // A divisão coincide com a borda exata de cada célula. Assim,
                     // no modo de logos ampliadas, o respiro fica idêntico dos dois lados.
-                    ctx.moveTo(badgeX, badgeY + 4);
-                    ctx.lineTo(badgeX, badgeY + (logoGallery ? 76 : 55));
+                    ctx.moveTo(badgeX, badgeY + (iconOnlyGallery ? -2 : 4));
+                    ctx.lineTo(badgeX, badgeY + (iconOnlyGallery ? 94 : logoGallery ? 76 : 55));
                     ctx.stroke();
                 }
 
                 if (item.logoOnly) {
-                    const logoSize = Math.min(68, badgeWidth - 28);
-                    const logoX = badgeCenterX - logoSize / 2;
+                    const logoSize = Math.min(iconOnlyGallery ? 86 : 68, badgeWidth - (iconOnlyGallery ? 22 : 28));
+                    // Logos reais podem ser horizontais (como marcas de instituições).
+                    // No modo sem texto, elas recebem uma área mais larga para não parecerem minúsculas.
+                    const imageLogoSize = iconOnlyGallery && item.image
+                        ? Math.min(196, badgeWidth - 14)
+                        : logoSize;
+                    const logoX = badgeCenterX - imageLogoSize / 2;
+                    const logoY = badgeY + (iconOnlyGallery ? 52 : 29);
                     ctx.save();
-                    drawBadgeIcon(ctx, logoX, badgeY + 29, item.type, item.image, logoSize);
+                    drawBadgeIcon(ctx, logoX, logoY, item.type, item.image, imageLogoSize);
                     ctx.restore();
-                    ctx.fillStyle = config.badgeSubColor;
-                    ctx.font = '500 12px "Inter", sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(fitText(item.sub, badgeWidth - 20), badgeCenterX, badgeY + 73);
-                    ctx.textAlign = 'left';
+                    if (!item.hideBadgeText) {
+                        ctx.fillStyle = config.badgeSubColor;
+                        ctx.font = '500 12px "Inter", sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(fitText(item.sub, badgeWidth - 20), badgeCenterX, badgeY + 73);
+                        ctx.textAlign = 'left';
+                    }
+                    usedWidth += badgeWidth;
                     return;
                 }
 
@@ -551,6 +589,7 @@
                 ctx.fillStyle = config.badgeSubColor;
                 ctx.font = '400 12px "Inter", sans-serif';
                 ctx.fillText(fitText(item.sub, titleMaxWidth), badgeX + 56, badgeY + 48);
+                usedWidth += badgeWidth;
             });
         }
 
@@ -574,11 +613,13 @@
                     ctx.save();
                     drawBadgeIcon(ctx, x + (cardWidth - logoSize) / 2, y + 23, item.type, item.image, logoSize);
                     ctx.restore();
-                    ctx.fillStyle = config.badgeSubColor;
-                    ctx.font = '500 10px "Inter", sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(fitText(item.sub, cardWidth - 16), x + cardWidth / 2, y + 53);
-                    ctx.textAlign = 'left';
+                    if (!item.hideBadgeText) {
+                        ctx.fillStyle = config.badgeSubColor;
+                        ctx.font = '500 10px "Inter", sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(fitText(item.sub, cardWidth - 16), x + cardWidth / 2, y + 53);
+                        ctx.textAlign = 'left';
+                    }
                     return;
                 }
                 ctx.save();
@@ -776,7 +817,13 @@
                 const scale = Math.min(imageSize / image.naturalWidth, imageSize / image.naturalHeight);
                 const imageWidth = image.naturalWidth * scale;
                 const imageHeight = image.naturalHeight * scale;
-                ctx.drawImage(image, x + imageSize / 2 - imageWidth / 2, y - imageHeight / 2, imageWidth, imageHeight);
+                const imageX = x + imageSize / 2 - imageWidth / 2;
+                const imageY = y - imageHeight / 2;
+                const previousSmoothing = ctx.imageSmoothingEnabled;
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(image, imageX, imageY, imageWidth, imageHeight);
+                ctx.imageSmoothingEnabled = previousSmoothing;
                 return;
             }
             ctx.fillStyle = '#38bdf8';
@@ -994,7 +1041,14 @@
 
         toggleCodeBg.addEventListener('change', () => drawBanner());
         toggleAvatarGuide.addEventListener('change', () => drawBanner());
-        toggleAllLogosOnly.addEventListener('change', () => drawBanner());
+        toggleAllLogosOnly.addEventListener('change', () => {
+            if (toggleAllLogosOnly.checked) toggleLogosWithoutLabels.checked = false;
+            drawBanner();
+        });
+        toggleLogosWithoutLabels.addEventListener('change', () => {
+            if (toggleLogosWithoutLabels.checked) toggleAllLogosOnly.checked = false;
+            drawBanner();
+        });
         toggleInstitutionSubtitle.addEventListener('change', () => drawBanner());
 
         function showToast(msg) {
@@ -1008,15 +1062,31 @@
         }
 
         downloadBtn.addEventListener('click', () => {
-            drawBanner(false);
-            const dataURL = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.download = 'banner-linkedin-dev.png';
-            link.href = dataURL;
-            link.click();
-
-            drawBanner(toggleAvatarGuide.checked);
-            showToast('Banner PNG (1584x396) baixado com sucesso!');
+            const exportScale = Number(downloadScale.value) || 1;
+            const originalCanvas = canvas;
+            const originalContext = ctx;
+            const exportCanvas = document.createElement('canvas');
+            const exportWidth = 1584 * exportScale;
+            const exportHeight = 396 * exportScale;
+            exportCanvas.width = exportWidth;
+            exportCanvas.height = exportHeight;
+            try {
+                canvas = exportCanvas;
+                ctx = exportCanvas.getContext('2d');
+                drawBanner(false, exportScale);
+                const dataURL = exportCanvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `banner-linkedin-dev-${exportScale}x.png`;
+                link.href = dataURL;
+                link.click();
+                showToast(`Banner PNG (${exportWidth}×${exportHeight} · ${exportScale}×) baixado com sucesso!`);
+            } catch {
+                showToast('Não foi possível exportar. Verifique se todas as imagens usadas permitem exportação.');
+            } finally {
+                canvas = originalCanvas;
+                ctx = originalContext;
+                drawBanner(toggleAvatarGuide.checked);
+            }
         });
 
         function isBannerFullscreen() {

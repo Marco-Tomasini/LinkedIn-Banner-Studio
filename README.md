@@ -12,7 +12,7 @@ Gerador visual de banners para LinkedIn, voltado a perfis de tecnologia. O proje
 - Guia opcional da área coberta pela foto de perfil do LinkedIn.
 - Visualização em tela cheia com zoom, pinça, arrastar e ajuste à tela.
 - Layout adaptado para celular e desktop.
-- Exportação direta em PNG.
+- Exportação direta em PNG de `1×` a `5×` (até `7920 × 1980 px`).
 
 ## Como usar
 
@@ -20,7 +20,9 @@ Gerador visual de banners para LinkedIn, voltado a perfis de tecnologia. O proje
 2. Informe nome, subtítulo, instituição e tecnologias.
 3. Escolha um estilo e um modelo.
 4. Opcionalmente, envie logos ou informe URLs públicas de imagens.
-5. Confira a prévia e clique em **Baixar Imagem PNG (1584x396)**.
+5. Escolha a escala de exportação de `1×` a `5×` e clique em **Baixar PNG**.
+
+`1×` gera o tamanho recomendado pelo LinkedIn (`1584 × 396 px`). Escalas maiores redesenham o banner em alta resolução; são úteis para guardar uma versão-mestre ou editar em outras ferramentas.
 
 Para definir uma categoria própria para uma tecnologia, separe-a com `|`:
 
