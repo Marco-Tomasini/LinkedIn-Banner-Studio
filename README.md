@@ -48,11 +48,11 @@ O arquivo de entrada do projeto é o `index.html`, portanto ele é reconhecido a
 
 O repositório já possui um workflow em [`.github/workflows/static.yml`](.github/workflows/static.yml): após um `push` na branch `main`, ele publica a versão atualizada pelo GitHub Actions.
 
-Se for a primeira publicação, acesse **Settings → Pages** no repositório e selecione **GitHub Actions** como fonte de implantação. Depois que o workflow concluir, o projeto ficará disponível em:
+O projeto está publicado em:
 
-```text
-https://SEU-USUARIO.github.io/NOME-DO-REPOSITORIO/
-```
+[https://marco-tomasini.github.io/LinkedIn-Banner-Studio/](https://marco-tomasini.github.io/LinkedIn-Banner-Studio/)
+
+Para novas cópias do projeto, acesse **Settings → Pages** no repositório e selecione **GitHub Actions** como fonte de implantação. Após o workflow concluir, a publicação ficará disponível na URL correspondente ao usuário e repositório.
 
 ## Licença
 
