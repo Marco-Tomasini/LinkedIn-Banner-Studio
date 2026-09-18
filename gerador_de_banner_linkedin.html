@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Banner para LinkedIn</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            500: '#06b6d4',
+                            600: '#0284c7',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        .canvas-container {
+            aspect-ratio: 1584 / 396;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+        }
+        #bannerPreview:fullscreen {
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            background: #020617;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: none;
+        }
+        #bannerPreview:fullscreen #bannerCanvas {
+            width: 100vw !important;
+            height: auto !important;
+            max-height: 100vh;
+            object-fit: contain;
+            transform-origin: center center;
+            will-change: transform;
+            transition: transform 160ms ease-out;
+        }
+        .fullscreen-exit {
+            display: none;
+        }
+        #bannerPreview:fullscreen .fullscreen-exit {
+            display: inline-flex;
+        }
+        .fullscreen-controls {
+            display: none;
+        }
+        #bannerPreview:fullscreen .fullscreen-controls {
+            display: flex;
+        }
+        @media (max-width: 1023px) {
+            #workspace > .mobile-flow {
+                display: contents;
+            }
+            .mobile-preview-card { order: 1; }
+            .mobile-content-card { order: 2; }
+            .mobile-design-card { order: 3; }
+            .mobile-settings-card { order: 4; }
+        }
+        @media (max-width: 639px) {
+            input:not([type='checkbox']),
+            button {
+                min-height: 44px;
+            }
+            input:not([type='checkbox']) {
+                font-size: 16px !important;
+            }
+            #bannerPreview:fullscreen .fullscreen-exit {
+                top: 12px;
+                right: 12px;
+            }
+            #bannerPreview:fullscreen .fullscreen-controls {
+                bottom: 12px;
+                left: 12px;
+                right: 12px;
+                justify-content: center;
+            }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-3 py-3 sm:px-4">
+        <div class="max-w-7xl mx-auto flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-code"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-white leading-tight">LinkedIn Banner Studio</h1>
+                </div>
+            </div>
+            
+            <button id="downloadBtn" class="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2.5 font-semibold text-white shadow-lg shadow-cyan-500/25 transition-all duration-200 hover:from-cyan-400 hover:to-blue-500 sm:w-auto rounded-xl transform hover:-translate-y-0.5 active:translate-y-0">
+                <i class="fa-solid fa-download"></i>
+                <span>Baixar Imagem PNG (1584x396)</span>
+            </button>
+        </div>
+    </header>
+
+    <main id="workspace" class="max-w-7xl mx-auto grid w-full flex-grow grid-cols-1 gap-4 px-3 py-4 sm:gap-6 sm:px-4 sm:py-6 lg:grid-cols-12 lg:gap-8">
+        
+        <!-- Left Column: Controls & Customization -->
+        <div class="mobile-flow space-y-4 sm:space-y-6 lg:col-span-5">
+            
+            <div class="mobile-design-card space-y-5 rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-xl sm:space-y-6 sm:p-5">
+                <div>
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-cyan-400 mb-4 flex items-center gap-2"><i class="fa-solid fa-palette"></i> Escolha o Estilo do Banner</h2>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <button onclick="applyPreset('cyber')" class="preset-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition group active-preset" data-preset="cyber"><div class="text-xs font-mono text-cyan-400 mb-1">01. Dark Tech Glow</div><div class="text-sm font-medium text-slate-200">Modern Code & Cyan</div></button>
+                        <button onclick="applyPreset('minimal')" class="preset-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition group" data-preset="minimal"><div class="text-xs font-mono text-indigo-400 mb-1">02. Minimalist Slate</div><div class="text-sm font-medium text-slate-200">Clean & Elegante</div></button>
+                        <button onclick="applyPreset('circuit')" class="preset-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition group" data-preset="circuit"><div class="text-xs font-mono text-emerald-400 mb-1">03. High Performance</div><div class="text-sm font-medium text-slate-200">Emerald Systems</div></button>
+                        <button onclick="applyPreset('corporate')" class="preset-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition group" data-preset="corporate"><div class="text-xs font-mono text-blue-400 mb-1">04. Deep Executive</div><div class="text-sm font-medium text-slate-200">Sober & Reliable</div></button>
+                    </div>
+                </div>
+                <div class="pt-5 border-t border-slate-800">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-cyan-400 mb-2 flex items-center gap-2"><i class="fa-solid fa-table-cells-large"></i> Escolha o Modelo Profissional</h2>
+                    <p class="text-xs text-slate-400 mb-4">O modelo define a composição; o estilo escolhido acima continua controlando as cores.</p>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <button onclick="applyTemplate('stack')" class="template-btn p-3 rounded-xl border border-cyan-500 bg-slate-800 text-left transition hover:bg-slate-800 ring-1 ring-cyan-500" data-template="stack"><div class="text-xs font-mono text-cyan-400 mb-1">01. Stack Direta</div><div class="text-sm font-medium text-slate-200">Tecnologias em destaque</div></button>
+                        <button onclick="applyTemplate('showcase')" class="template-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition" data-template="showcase"><div class="text-xs font-mono text-blue-400 mb-1">02. Logo Showcase</div><div class="text-sm font-medium text-slate-200">Identidade + logos</div></button>
+                        <button onclick="applyTemplate('minimal')" class="template-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition" data-template="minimal"><div class="text-xs font-mono text-violet-400 mb-1">03. Minimal Identity</div><div class="text-sm font-medium text-slate-200">Tipografia limpa e direta</div></button>
+                        <button onclick="applyTemplate('timeline')" class="template-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition" data-template="timeline"><div class="text-xs font-mono text-emerald-400 mb-1">04. Career Timeline</div><div class="text-sm font-medium text-slate-200">Jornada e especialidades</div></button>
+                        <button onclick="applyTemplate('credentials')" class="template-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition" data-template="credentials"><div class="text-xs font-mono text-amber-400 mb-1">05. Credential Strip</div><div class="text-sm font-medium text-slate-200">Credenciais organizadas</div></button>
+                        <button onclick="applyTemplate('signature')" class="template-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition" data-template="signature"><div class="text-xs font-mono text-rose-400 mb-1">06. Signature Wave</div><div class="text-sm font-medium text-slate-200">Marca pessoal sofisticada</div></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Inputs -->
+            <div class="mobile-content-card space-y-4 rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-xl sm:p-5">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-cyan-400 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> Personalizar Suas Informações
+                </h2>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Seu Nome Completo</label>
+                    <input type="text" id="inputName" value="Seu Nome Aqui" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white font-bold focus:outline-none focus:border-cyan-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Cargo / Subtítulo</label>
+                    <input type="text" id="inputSubtitle" value="Desenvolvimento de Sistemas" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Instituição</label>
+                    <input type="text" id="inputInstitution" value="UDESC" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Tecnologias (separadas por vírgula)</label>
+                    <input type="text" id="inputSkills" value="SQL, PHP, JavaScript, C, C++" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm font-mono text-cyan-300 focus:outline-none focus:border-cyan-500">
+                    <p class="mt-1 text-[11px] leading-relaxed text-slate-500">Para definir uma categoria, use <span class="font-mono text-slate-400">Tecnologia | Categoria</span>. Ex.: <span class="font-mono text-slate-400">PHP | Backend</span>.</p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Right Column: Canvas Live Preview & Safe Zone Info -->
+        <div class="mobile-flow flex flex-col justify-between space-y-4 sm:space-y-6 lg:col-span-7">
+            
+            <!-- Preview Box -->
+            <div class="mobile-preview-card space-y-4 rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-2xl sm:p-5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+                        <i class="fa-solid fa-eye"></i> Visualização em Tempo Real
+                    </h2>
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <span class="hidden font-mono text-xs text-slate-500 sm:inline">1584 x 396 px</span>
+                        <button id="fullscreenBtn" type="button" class="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-200 transition hover:border-cyan-500 hover:text-cyan-300" aria-label="Abrir visualização em tela cheia" title="Visualizar em tela cheia">
+                            <i class="fa-solid fa-expand"></i>
+                            <span>Tela cheia</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Canvas Container -->
+                <div id="bannerPreview" class="relative w-full rounded-xl overflow-hidden border border-slate-700/60 bg-black canvas-container">
+                    <canvas id="bannerCanvas" width="1584" height="396" class="w-full h-full block"></canvas>
+                    <button id="exitFullscreenBtn" type="button" class="fullscreen-exit absolute right-5 top-5 z-10 items-center gap-2 rounded-lg border border-slate-500/80 bg-slate-950/90 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur transition hover:border-cyan-400 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Sair da tela cheia" title="Sair da tela cheia">
+                        <i class="fa-solid fa-compress"></i>
+                        <span>Sair da tela cheia</span>
+                    </button>
+                    <div class="fullscreen-controls absolute bottom-5 left-5 z-10 items-center gap-1 rounded-xl border border-slate-500/80 bg-slate-950/90 p-1.5 text-white shadow-lg backdrop-blur" aria-label="Controles de zoom">
+                        <button id="zoomOutBtn" type="button" class="flex items-center justify-center rounded-lg px-3 py-2 text-sm font-bold transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Diminuir zoom" title="Diminuir zoom"><i class="fa-solid fa-minus"></i></button>
+                        <span id="zoomLevel" class="min-w-12 select-none text-center text-xs font-semibold text-slate-200" aria-live="polite">100%</span>
+                        <button id="zoomInBtn" type="button" class="flex items-center justify-center rounded-lg px-3 py-2 text-sm font-bold transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Aumentar zoom" title="Aumentar zoom"><i class="fa-solid fa-plus"></i></button>
+                        <button id="zoomResetBtn" type="button" class="rounded-lg px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" title="Ver o banner inteiro">Ajustar</button>
+                    </div>
+                </div>
+
+                <!-- Explanation Banner -->
+                <details class="sm:hidden rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-400">
+                    <summary class="flex cursor-pointer list-none items-center gap-2 p-3 font-semibold text-slate-200 marker:content-none">
+                        <i class="fa-solid fa-circle-info text-cyan-400"></i>
+                        Área protegida para a foto de perfil
+                        <i class="fa-solid fa-chevron-down ml-auto text-[10px] text-slate-500"></i>
+                    </summary>
+                    <p class="border-t border-slate-800 px-3 pb-3 pt-2 leading-relaxed">O LinkedIn coloca sua foto de perfil nessa região; por isso, o conteúdo do banner começa mais à direita.</p>
+                </details>
+                <div class="hidden sm:flex items-start gap-3 bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs text-slate-400">
+                    <i class="fa-solid fa-circle-info text-cyan-400 text-base mt-0.5"></i>
+                    <div>
+                        <strong class="text-slate-200">Por que o canto inferior esquerdo está protegido?</strong><br>
+                        O LinkedIn coloca sua foto de perfil circular exatamente sobre essa região. Todo o conteúdo textual foi projetado estrategicamente do meio para a direita para garantir total visibilidade em celulares e computadores!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Banner settings below preview -->
+            <div class="mobile-settings-card space-y-5 rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-xl sm:space-y-6 sm:p-5">
+                <div class="pt-5 border-t border-slate-800 space-y-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <span class="flex-1 text-xs font-medium leading-relaxed text-slate-300">Efeito de Luz e Curvas de Fundo</span>
+                        <label class="relative inline-flex shrink-0 items-center cursor-pointer"><input type="checkbox" id="toggleCodeBg" checked class="sr-only peer"><div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500"></div></label>
+                    </div>
+                    <div class="flex items-center justify-between gap-4 pt-3 border-t border-slate-800">
+                        <span class="flex-1 text-xs font-medium leading-relaxed text-slate-300">Mostrar Guia da Foto de Perfil</span>
+                        <label class="relative inline-flex shrink-0 items-center cursor-pointer"><input type="checkbox" id="toggleAvatarGuide" checked class="sr-only peer"><div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div></label>
+                    </div>
+                    <div class="flex items-center justify-between gap-4 pt-3 border-t border-slate-800">
+                        <span class="flex-1 text-xs font-medium leading-relaxed text-slate-300">Selos: logos ampliadas com categoria abaixo</span>
+                        <label class="relative inline-flex shrink-0 items-center cursor-pointer"><input type="checkbox" id="toggleAllLogosOnly" class="sr-only peer"><div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div></label>
+                    </div>
+                    <div class="flex items-center justify-between gap-4 pt-3 border-t border-slate-800">
+                        <span class="flex-1 text-xs font-medium leading-relaxed text-slate-300">Mostrar instituição no subtítulo</span>
+                        <label class="relative inline-flex shrink-0 items-center cursor-pointer"><input type="checkbox" id="toggleInstitutionSubtitle" class="sr-only peer"><div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div></label>
+                    </div>
+                    <div class="bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 text-xs space-y-2">
+                        <div class="font-semibold text-slate-300 flex items-center gap-1.5"><i class="fa-solid fa-lightbulb text-amber-400"></i> Dica de Título para seu LinkedIn:</div>
+                        <p class="text-slate-400 leading-relaxed">Combine este banner com um ótimo título no perfil:</p>
+                        <div id="linkedinHeadlineTip" class="break-words rounded border border-slate-800 bg-slate-950 p-2 font-mono leading-relaxed text-cyan-300 select-all cursor-pointer hover:border-slate-700" title="Clique para copiar"></div>
+                    </div>
+                </div>
+
+                <div class="pt-5 border-t border-slate-800 space-y-3">
+                    <div>
+                        <label for="institutionImage" class="block text-xs font-medium text-slate-400 mb-1">Imagem / logo da instituição</label>
+                        <input type="file" id="institutionImage" accept="image/*" class="block w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-cyan-500/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-cyan-300 hover:file:bg-cyan-500/25">
+                        <div class="mt-2 flex flex-col gap-2 sm:flex-row"><input type="url" id="institutionImageUrl" placeholder="ou cole o link da imagem (https://...)" class="min-w-0 flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"><button type="button" id="useInstitutionImageUrl" class="w-full shrink-0 rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-cyan-300 hover:bg-slate-700 sm:w-auto">Usar link</button></div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Imagens por tecnologia</label>
+                        <div id="skillImageControls" class="space-y-2"></div>
+                        <p class="mt-2 text-[11px] leading-relaxed text-slate-500">Cada tecnologia separada por vírgula cria seu próprio campo. Quando um site não libera CORS, o gerador tenta automaticamente um compatibilizador de imagens para preservar a exportação em PNG.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-cyan-600 text-white font-medium px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none z-50">
+        <i class="fa-solid fa-circle-check text-lg"></i>
+        <span id="toastMsg">Banner baixado com sucesso!</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('bannerCanvas');
+        const bannerPreview = document.getElementById('bannerPreview');
+        const ctx = canvas.getContext('2d');
+
+        // Form elements
+        const inputName = document.getElementById('inputName');
+        const inputSubtitle = document.getElementById('inputSubtitle');
+        const inputInstitution = document.getElementById('inputInstitution');
+        const inputSkills = document.getElementById('inputSkills');
+        const institutionImageInput = document.getElementById('institutionImage');
+        const institutionImageUrl = document.getElementById('institutionImageUrl');
+        const useInstitutionImageUrl = document.getElementById('useInstitutionImageUrl');
+        const skillImageControls = document.getElementById('skillImageControls');
+        const toggleCodeBg = document.getElementById('toggleCodeBg');
+        const toggleAvatarGuide = document.getElementById('toggleAvatarGuide');
+        const toggleAllLogosOnly = document.getElementById('toggleAllLogosOnly');
+        const toggleInstitutionSubtitle = document.getElementById('toggleInstitutionSubtitle');
+        const linkedinHeadlineTip = document.getElementById('linkedinHeadlineTip');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const zoomResetBtn = document.getElementById('zoomResetBtn');
+        const zoomLevel = document.getElementById('zoomLevel');
+
+        let currentPreset = 'cyber';
+        let currentTemplate = 'stack';
+        let institutionImage = null;
+        const skillImages = new Map();
+        const skillImageUrls = new Map();
+        const fullscreenPointers = new Map();
+        let fullscreenScale = 1;
+        let fullscreenPan = { x: 0, y: 0 };
+        let fullscreenGesture = null;
+
+        const PRESETS = {
+            cyber: {
+                bgGradient: ['#020817', '#081738', '#030a1e'],
+                flareColor: 'rgba(56, 189, 248, 0.25)',
+                lineGlowStart: '#38bdf8',
+                lineGlowEnd: '#c084fc',
+                textColor: '#ffffff',
+                subtitleColor: '#93c5fd',
+                badgeTitleColor: '#ffffff',
+                badgeSubColor: '#64748b',
+                dividerColor: 'rgba(255, 255, 255, 0.15)'
+            },
+            minimal: {
+                bgGradient: ['#0f172a', '#1e293b', '#0f172a'],
+                flareColor: 'rgba(168, 85, 247, 0.2)',
+                lineGlowStart: '#818cf8',
+                lineGlowEnd: '#f43f5e',
+                textColor: '#ffffff',
+                subtitleColor: '#cbd5e1',
+                badgeTitleColor: '#f8fafc',
+                badgeSubColor: '#94a3b8',
+                dividerColor: 'rgba(255, 255, 255, 0.12)'
+            },
+            circuit: {
+                bgGradient: ['#022c22', '#064e3b', '#020617'],
+                flareColor: 'rgba(52, 211, 153, 0.25)',
+                lineGlowStart: '#34d399',
+                lineGlowEnd: '#a7f3d0',
+                textColor: '#ffffff',
+                subtitleColor: '#6ee7b7',
+                badgeTitleColor: '#ffffff',
+                badgeSubColor: '#047857',
+                dividerColor: 'rgba(52, 211, 153, 0.2)'
+            },
+            corporate: {
+                bgGradient: ['#030712', '#0f172a', '#1e1b4b'],
+                flareColor: 'rgba(96, 165, 250, 0.2)',
+                lineGlowStart: '#60a5fa',
+                lineGlowEnd: '#818cf8',
+                textColor: '#ffffff',
+                subtitleColor: '#cbd5e1',
+                badgeTitleColor: '#ffffff',
+                badgeSubColor: '#64748b',
+                dividerColor: 'rgba(255, 255, 255, 0.15)'
+            }
+        };
+
+        function drawBanner(includeGuide = toggleAvatarGuide.checked) {
+            const config = PRESETS[currentPreset];
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // 1. Background Gradient
+            const bgGrd = ctx.createLinearGradient(0, 0, width, height);
+            bgGrd.addColorStop(0, config.bgGradient[0]);
+            bgGrd.addColorStop(0.5, config.bgGradient[1]);
+            bgGrd.addColorStop(1, config.bgGradient[2]);
+            ctx.fillStyle = bgGrd;
+            ctx.fillRect(0, 0, width, height);
+
+            const items = [
+                { title: inputInstitution.value.trim() || "Instituição", sub: "Formação", type: "institution", image: institutionImage, logoOnly: toggleAllLogosOnly.checked },
+                ...getSkills().map(skill => ({ ...skill, image: skillImages.get(skill.key) || null, logoOnly: toggleAllLogosOnly.checked }))
+            ];
+            drawSelectedTemplate(config, items, width, height);
+
+            // 7. Render Avatar Safe Zone Guide (If enabled)
+            if (includeGuide) {
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+
+                ctx.beginPath();
+                ctx.arc(200, 280, 115, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = '#fca5a5';
+                ctx.font = '700 14px "Inter", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('FOTO DE PERFIL', 200, 275);
+                ctx.font = '400 12px "Inter", sans-serif';
+                ctx.fillText('(Espaço reservado pelo LinkedIn)', 200, 295);
+                ctx.textAlign = 'left';
+            }
+        }
+
+        function drawSelectedTemplate(config, items, width, height) {
+            const contentX = 640;
+            const contentWidth = width - contentX - 40;
+
+            if (currentTemplate === 'showcase') {
+                drawLogoShowcaseDecoration(config, width, height);
+                drawKicker(config, 'PERSONAL BRAND', contentX, 64);
+                drawIdentity(config, contentX, 124, 151, 190, contentWidth, 46);
+                drawBadgeRow(config, items.map(item => ({ ...item, logoOnly: true })), contentX, 245, contentWidth);
+            } else if (currentTemplate === 'minimal') {
+                drawMinimalIdentityDecoration(config, width, height);
+                drawKicker(config, 'PROFESSIONAL IDENTITY', contentX, 84);
+                drawIdentity(config, contentX, 142, 170, 210, contentWidth, 48);
+                drawBadgeRow(config, items, contentX, 260, contentWidth);
+            } else if (currentTemplate === 'timeline') {
+                drawTimelineDecoration(config, items.length, width, height);
+                drawKicker(config, 'CAREER TIMELINE', contentX, 56);
+                drawIdentity(config, contentX, 106, 132, 171, contentWidth, 42);
+                drawBadgeRow(config, items, contentX, 265, contentWidth);
+            } else if (currentTemplate === 'credentials') {
+                drawCredentialStripDecoration(config, width, height);
+                drawKicker(config, 'CORE CREDENTIALS', contentX, 58);
+                drawIdentity(config, contentX, 112, 138, 177, contentWidth, 44);
+                drawBadgeRow(config, items, contentX, 250, contentWidth);
+            } else if (currentTemplate === 'signature') {
+                drawSignatureDecoration(config, width, height);
+                drawKicker(config, 'PERSONAL BRAND', contentX, 71);
+                drawIdentity(config, contentX, 145, 173, 213, contentWidth, 52);
+                drawBadgeRow(config, items, contentX, 272, contentWidth);
+            } else {
+                drawStackDecoration(config, width, height);
+                drawIdentity(config, contentX, 140, 168, 212, contentWidth, 52);
+                drawBadgeRow(config, items, contentX, 255, contentWidth);
+            }
+        }
+
+        function drawIdentity(config, x, nameY, lineY, subtitleY, maxWidth, nameSize) {
+            const nameText = inputName.value.trim() || 'Seu Nome Aqui';
+            const roleText = inputSubtitle.value.trim() || 'Seu subtítulo';
+            const subtitleText = toggleInstitutionSubtitle.checked
+                ? `${roleText} • ${inputInstitution.value.trim() || 'Instituição'}`
+                : roleText;
+            ctx.fillStyle = config.textColor;
+            ctx.font = `800 ${nameSize}px "Inter", sans-serif`;
+            const visibleName = fitText(nameText, maxWidth);
+            ctx.fillText(visibleName, x, nameY);
+
+            const lineLength = Math.min(maxWidth, Math.max(ctx.measureText(visibleName).width + 64, 460));
+            const lineGrd = ctx.createLinearGradient(x, 0, x + lineLength, 0);
+            lineGrd.addColorStop(0, config.lineGlowStart);
+            lineGrd.addColorStop(0.62, config.lineGlowEnd);
+            lineGrd.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.shadowColor = config.lineGlowStart;
+            ctx.shadowBlur = 12;
+            ctx.strokeStyle = lineGrd;
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(x, lineY);
+            ctx.lineTo(x + lineLength, lineY);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = config.subtitleColor;
+            ctx.font = '500 24px "Inter", sans-serif';
+            ctx.fillText(fitText(subtitleText, maxWidth), x, subtitleY);
+        }
+
+        function drawKicker(config, text, x, y) {
+            ctx.fillStyle = config.lineGlowStart;
+            ctx.font = '700 12px "JetBrains Mono", monospace';
+            ctx.fillText(text, x, y);
+        }
+
+        function drawBadgeRow(config, items, startX, badgeY, availableWidth) {
+            const itemCount = Math.max(items.length, 1);
+            const badgeWidth = availableWidth / itemCount;
+            const logoGallery = items.every(item => item.logoOnly);
+            items.forEach((item, index) => {
+                const badgeX = startX + badgeWidth * index;
+                const badgeCenterX = badgeX + badgeWidth / 2;
+                if (index > 0) {
+                    ctx.strokeStyle = config.dividerColor;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    // A divisão coincide com a borda exata de cada célula. Assim,
+                    // no modo de logos ampliadas, o respiro fica idêntico dos dois lados.
+                    ctx.moveTo(badgeX, badgeY + 4);
+                    ctx.lineTo(badgeX, badgeY + (logoGallery ? 76 : 55));
+                    ctx.stroke();
+                }
+
+                if (item.logoOnly) {
+                    const logoSize = Math.min(68, badgeWidth - 28);
+                    const logoX = badgeCenterX - logoSize / 2;
+                    ctx.save();
+                    drawBadgeIcon(ctx, logoX, badgeY + 29, item.type, item.image, logoSize);
+                    ctx.restore();
+                    ctx.fillStyle = config.badgeSubColor;
+                    ctx.font = '500 12px "Inter", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(fitText(item.sub, badgeWidth - 20), badgeCenterX, badgeY + 73);
+                    ctx.textAlign = 'left';
+                    return;
+                }
+
+                ctx.save();
+                drawBadgeIcon(ctx, badgeX, badgeY + 28, item.type, item.image, 48);
+                ctx.restore();
+
+                const titleMaxWidth = Math.max(42, badgeWidth - 72);
+                let titleFontSize = 17;
+                ctx.fillStyle = config.badgeTitleColor;
+                ctx.font = `700 ${titleFontSize}px "Inter", sans-serif`;
+                while (titleFontSize > 13 && ctx.measureText(item.title).width > titleMaxWidth) {
+                    titleFontSize -= 1;
+                    ctx.font = `700 ${titleFontSize}px "Inter", sans-serif`;
+                }
+                ctx.fillText(fitText(item.title, titleMaxWidth), badgeX + 56, badgeY + 25);
+
+                ctx.fillStyle = config.badgeSubColor;
+                ctx.font = '400 12px "Inter", sans-serif';
+                ctx.fillText(fitText(item.sub, titleMaxWidth), badgeX + 56, badgeY + 48);
+            });
+        }
+
+        function drawBadgeGrid(config, items, startX, startY, availableWidth) {
+            const visibleItems = items.slice(0, 6);
+            const columns = 3;
+            const gap = 14;
+            const cardWidth = (availableWidth - gap * (columns - 1)) / columns;
+            const cardHeight = 58;
+            visibleItems.forEach((item, index) => {
+                const column = index % columns;
+                const row = Math.floor(index / columns);
+                const x = startX + column * (cardWidth + gap);
+                const y = startY + row * 70;
+                drawRoundedRect(x, y, cardWidth, cardHeight, 12, 'rgba(255, 255, 255, 0.055)');
+                ctx.strokeStyle = config.dividerColor;
+                ctx.lineWidth = 1;
+                drawRoundedRect(x, y, cardWidth, cardHeight, 12, null, true);
+                if (item.logoOnly) {
+                    const logoSize = Math.min(40, cardWidth - 20);
+                    ctx.save();
+                    drawBadgeIcon(ctx, x + (cardWidth - logoSize) / 2, y + 23, item.type, item.image, logoSize);
+                    ctx.restore();
+                    ctx.fillStyle = config.badgeSubColor;
+                    ctx.font = '500 10px "Inter", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(fitText(item.sub, cardWidth - 16), x + cardWidth / 2, y + 53);
+                    ctx.textAlign = 'left';
+                    return;
+                }
+                ctx.save();
+                drawBadgeIcon(ctx, x + 8, y + 29, item.type, item.image, 36);
+                ctx.restore();
+                const textWidth = cardWidth - 70;
+                ctx.fillStyle = config.badgeTitleColor;
+                ctx.font = '700 15px "Inter", sans-serif';
+                ctx.fillText(fitText(item.title, textWidth), x + 56, y + 24);
+                ctx.fillStyle = config.badgeSubColor;
+                ctx.font = '400 11px "Inter", sans-serif';
+                ctx.fillText(fitText(item.sub, textWidth), x + 56, y + 43);
+            });
+        }
+
+        function drawStackDecoration(config, width, height) {
+            if (!toggleCodeBg.checked) return;
+            const flareGrd = ctx.createRadialGradient(250, 220, 10, 250, 220, 350);
+            flareGrd.addColorStop(0, config.flareColor);
+            flareGrd.addColorStop(0.6, 'rgba(14, 165, 233, 0.08)');
+            flareGrd.addColorStop(1, 'transparent');
+            ctx.fillStyle = flareGrd;
+            ctx.beginPath();
+            ctx.arc(250, 220, 350, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = config.lineGlowStart;
+            ctx.globalAlpha = 0.32;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-50, height + 50);
+            ctx.bezierCurveTo(200, height - 100, 300, 100, 600, -50);
+            ctx.stroke();
+            ctx.strokeStyle = config.lineGlowEnd;
+            ctx.globalAlpha = 0.22;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(-100, height);
+            ctx.bezierCurveTo(150, height - 50, 250, 150, 550, -80);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+
+        function drawLogoShowcaseDecoration(config, width, height) {
+            if (!toggleCodeBg.checked) return;
+            const glow = ctx.createRadialGradient(280, 190, 10, 280, 190, 360);
+            glow.addColorStop(0, config.flareColor);
+            glow.addColorStop(1, 'transparent');
+            ctx.fillStyle = glow;
+            ctx.fillRect(0, 0, 640, height);
+            ctx.strokeStyle = config.dividerColor;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(630, 42);
+            ctx.lineTo(630, height - 42);
+            ctx.stroke();
+            drawRoundedRect(640, 224, width - 680, 108, 18, 'rgba(255, 255, 255, 0.035)');
+            ctx.strokeStyle = config.dividerColor;
+            drawRoundedRect(640, 224, width - 680, 108, 18, null, true);
+        }
+
+        function drawMinimalIdentityDecoration(config, width, height) {
+            if (!toggleCodeBg.checked) return;
+            ctx.fillStyle = config.lineGlowStart;
+            ctx.globalAlpha = 0.75;
+            ctx.fillRect(626, 74, 4, 226);
+            ctx.globalAlpha = 1;
+            ctx.strokeStyle = config.dividerColor;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(660, 240);
+            ctx.lineTo(width - 48, 240);
+            ctx.stroke();
+        }
+
+        function drawCredentialStripDecoration(config, width, height) {
+            if (!toggleCodeBg.checked) return;
+            drawRoundedRect(622, 220, width - 658, 116, 16, 'rgba(255, 255, 255, 0.05)');
+            ctx.strokeStyle = config.dividerColor;
+            ctx.lineWidth = 1;
+            drawRoundedRect(622, 220, width - 658, 116, 16, null, true);
+            ctx.strokeStyle = config.lineGlowStart;
+            ctx.globalAlpha = 0.38;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(660, 234);
+            ctx.lineTo(width - 76, 234);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+
+        function drawTimelineDecoration(config, count, width, height) {
+            if (!toggleCodeBg.checked) return;
+            const startX = 662;
+            const endX = width - 62;
+            const y = 222;
+            ctx.strokeStyle = config.dividerColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(startX, y);
+            ctx.lineTo(endX, y);
+            ctx.stroke();
+            Array.from({ length: Math.min(count, 6) }).forEach((_, index) => {
+                const x = startX + (endX - startX) * (index / Math.max(Math.min(count, 6) - 1, 1));
+                ctx.fillStyle = index === 0 ? config.lineGlowEnd : config.lineGlowStart;
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function drawSignatureDecoration(config, width, height) {
+            if (!toggleCodeBg.checked) return;
+            ctx.strokeStyle = config.lineGlowStart;
+            ctx.globalAlpha = 0.3;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(40, height - 52);
+            ctx.bezierCurveTo(260, 170, 405, 470, 618, 92);
+            ctx.stroke();
+            ctx.strokeStyle = config.lineGlowEnd;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(0, height - 16);
+            ctx.bezierCurveTo(230, 190, 420, 460, 610, 48);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+
+        function drawRoundedRect(x, y, width, height, radius, fillStyle, strokeOnly = false) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            if (strokeOnly) ctx.stroke();
+            else {
+                ctx.fillStyle = fillStyle;
+                ctx.fill();
+            }
+        }
+
+        function getSkills(limit = 6) {
+            return inputSkills.value
+                .split(',')
+                .map(item => item.trim())
+                .filter(Boolean)
+                .map(item => {
+                    const [title, ...categoryParts] = item.split('|').map(part => part.trim());
+                    const sub = categoryParts.join(' | ') || 'Tecnologia';
+                    return {
+                        title,
+                        sub,
+                        key: `${title.toLowerCase()}|${sub.toLowerCase()}`,
+                        type: getSkillType(title)
+                    };
+                })
+                .slice(0, limit);
+        }
+
+        function updateLinkedInHeadlineTip() {
+            const role = inputSubtitle.value.trim() || 'Seu cargo';
+            const institution = inputInstitution.value.trim();
+            const skills = getSkills(4).map(skill => skill.title);
+            const identity = institution ? `${role} @ ${institution}` : role;
+            linkedinHeadlineTip.textContent = skills.length
+                ? `${identity} | ${skills.join(' • ')}`
+                : identity;
+        }
+
+        function getSkillType(title) {
+            const normalized = title.toLowerCase();
+            if (normalized.includes('sql') || normalized.includes('mongo') || normalized.includes('database')) return 'db';
+            if (normalized.includes('php')) return 'php';
+            if (normalized.includes('javascript') || normalized === 'js' || normalized.includes('typescript')) return 'js';
+            return 'cpp';
+        }
+
+        function fitText(text, maxWidth) {
+            if (ctx.measureText(text).width <= maxWidth) return text;
+            let shortened = text;
+            while (shortened.length && ctx.measureText(`${shortened}…`).width > maxWidth) {
+                shortened = shortened.slice(0, -1);
+            }
+            return `${shortened}…`;
+        }
+
+        function drawBadgeIcon(ctx, x, y, type, image, imageSize = 48) {
+            if (image && image.complete && image.naturalWidth) {
+                const scale = Math.min(imageSize / image.naturalWidth, imageSize / image.naturalHeight);
+                const imageWidth = image.naturalWidth * scale;
+                const imageHeight = image.naturalHeight * scale;
+                ctx.drawImage(image, x + imageSize / 2 - imageWidth / 2, y - imageHeight / 2, imageWidth, imageHeight);
+                return;
+            }
+            ctx.fillStyle = '#38bdf8';
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = Math.max(1.5, imageSize / 24);
+            const centerX = x + imageSize / 2;
+
+            if (type === 'institution') {
+                // Graduation Cap / Badge Icon
+                const capHalfWidth = imageSize * 0.36;
+                ctx.beginPath();
+                ctx.moveTo(centerX, y - imageSize * 0.31);
+                ctx.lineTo(centerX + capHalfWidth, y - imageSize * 0.12);
+                ctx.lineTo(centerX, y + imageSize * 0.08);
+                ctx.lineTo(centerX - capHalfWidth, y - imageSize * 0.12);
+                ctx.closePath();
+                ctx.fill();
+            } else if (type === 'db') {
+                // Database Cylinder Icon
+                const radiusX = imageSize * 0.28;
+                const radiusY = imageSize * 0.1;
+                ctx.beginPath();
+                ctx.ellipse(centerX, y - imageSize * 0.19, radiusX, radiusY, 0, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(centerX - radiusX, y - imageSize * 0.19);
+                ctx.lineTo(centerX - radiusX, y + imageSize * 0.19);
+                ctx.ellipse(centerX, y + imageSize * 0.19, radiusX, radiusY, 0, 0, Math.PI);
+                ctx.stroke();
+            } else if (type === 'js' || type === 'php') {
+                // Code Brackets Icon
+                ctx.font = `700 ${Math.round(imageSize * 0.42)}px "JetBrains Mono", monospace`;
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillText('</>', centerX - ctx.measureText('</>').width / 2, y + imageSize * 0.15);
+            } else {
+                // Tech Gear / Speed Icon
+                ctx.font = `700 ${Math.round(imageSize * 0.4)}px "JetBrains Mono", monospace`;
+                ctx.fillStyle = '#c084fc';
+                ctx.fillText('C++', centerX - ctx.measureText('C++').width / 2, y + imageSize * 0.15);
+            }
+        }
+
+        function applyPreset(presetKey) {
+            currentPreset = presetKey;
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                if (btn.dataset.preset === presetKey) {
+                    btn.classList.add('border-cyan-500', 'bg-slate-800', 'ring-1', 'ring-cyan-500');
+                    btn.classList.remove('border-slate-700', 'bg-slate-800/60');
+                } else {
+                    btn.classList.remove('border-cyan-500', 'bg-slate-800', 'ring-1', 'ring-cyan-500');
+                    btn.classList.add('border-slate-700', 'bg-slate-800/60');
+                }
+            });
+            drawBanner();
+        }
+
+        function applyTemplate(templateKey) {
+            currentTemplate = templateKey;
+            document.querySelectorAll('.template-btn').forEach(btn => {
+                if (btn.dataset.template === templateKey) {
+                    btn.classList.add('border-cyan-500', 'bg-slate-800', 'ring-1', 'ring-cyan-500');
+                    btn.classList.remove('border-slate-700', 'bg-slate-800/60');
+                } else {
+                    btn.classList.remove('border-cyan-500', 'bg-slate-800', 'ring-1', 'ring-cyan-500');
+                    btn.classList.add('border-slate-700', 'bg-slate-800/60');
+                }
+            });
+            drawBanner();
+        }
+
+        // Live Redraw Listeners
+        [inputName, inputSubtitle, inputInstitution, inputSkills].forEach(input => {
+            input.addEventListener('input', () => {
+                if (input === inputSkills) renderSkillImageControls();
+                updateLinkedInHeadlineTip();
+                drawBanner();
+            });
+        });
+
+        function loadLocalImage(file) {
+            return new Promise((resolve) => {
+                if (!file || !file.type.startsWith('image/')) {
+                    resolve(null);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const image = new Image();
+                    image.onload = () => resolve(image);
+                    image.onerror = () => resolve(null);
+                    image.src = reader.result;
+                };
+                reader.onerror = () => resolve(null);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function tryLoadExternalImage(sourceUrl) {
+            return new Promise((resolve) => {
+                const image = new Image();
+                image.crossOrigin = 'anonymous';
+                image.onload = () => resolve(image);
+                image.onerror = () => resolve(null);
+                image.src = sourceUrl;
+            });
+        }
+
+        async function loadImageFromUrl(url) {
+            try {
+                const parsedUrl = new URL(url);
+                if (!['http:', 'https:'].includes(parsedUrl.protocol)) return null;
+            } catch {
+                return null;
+            }
+
+            const directImage = await tryLoadExternalImage(url);
+            if (directImage) return directImage;
+
+            // Alguns servidores bloqueiam canvas por CORS. Este fallback devolve a imagem
+            // com o cabeçalho necessário, para que ela continue disponível no PNG final.
+            const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(url)}`;
+            return tryLoadExternalImage(proxyUrl);
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function renderSkillImageControls() {
+            const skills = getSkills(Infinity);
+            if (!skills.length) {
+                skillImageControls.innerHTML = '<p class="rounded-lg border border-dashed border-slate-700 px-3 py-2 text-xs text-slate-500">Digite uma tecnologia para criar seu campo de imagem.</p>';
+                return;
+            }
+
+            skillImageControls.innerHTML = skills.map((skill, index) => {
+                const imageUrl = skillImageUrls.get(skill.key) || '';
+                const isVisible = index < 6;
+                const imageStatus = skillImageUrls.has(skill.key) ? 'Link aplicado' : skillImages.has(skill.key) ? 'Upload aplicado' : 'Sem imagem';
+                return `
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-3 space-y-2" data-skill-key="${escapeHtml(skill.key)}">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-xs font-semibold text-slate-200">${escapeHtml(skill.title)}</span>
+                            <span class="text-[10px] font-mono text-slate-500">${escapeHtml(skill.sub)} · ${imageStatus}${isVisible ? '' : ' · fora do limite do banner'}</span>
+                        </div>
+                        <input type="file" accept="image/*" class="skill-image-file block w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-cyan-500/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-cyan-300 hover:file:bg-cyan-500/25">
+                        <div class="flex flex-col gap-2 sm:flex-row">
+                            <input type="url" value="${escapeHtml(imageUrl)}" placeholder="https://exemplo.com/logo.png" class="skill-image-url min-w-0 flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+                            <button type="button" class="use-skill-image-url w-full shrink-0 rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-cyan-300 hover:bg-slate-700 sm:w-auto">Usar link</button>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        institutionImageInput.addEventListener('change', async () => {
+            const image = await loadLocalImage(institutionImageInput.files[0]);
+            if (image) {
+                institutionImage = image;
+                drawBanner();
+                showToast('Logo da instituição atualizado.');
+            } else {
+                showToast('Não foi possível carregar essa imagem.');
+            }
+        });
+
+        useInstitutionImageUrl.addEventListener('click', async () => {
+            const image = await loadImageFromUrl(institutionImageUrl.value.trim());
+            if (image) {
+                institutionImage = image;
+                drawBanner();
+                showToast('Imagem da instituição atualizada pelo link.');
+            } else {
+                showToast('Não foi possível usar esse link. Verifique se a imagem é pública e se a URL está correta.');
+            }
+        });
+
+        skillImageControls.addEventListener('change', async (event) => {
+            if (!event.target.classList.contains('skill-image-file')) return;
+            const card = event.target.closest('[data-skill-key]');
+            const image = await loadLocalImage(event.target.files[0]);
+            if (image) {
+                skillImages.set(card.dataset.skillKey, image);
+                skillImageUrls.delete(card.dataset.skillKey);
+                renderSkillImageControls();
+                drawBanner();
+                showToast('Imagem da tecnologia atualizada.');
+            } else {
+                showToast('Não foi possível carregar essa imagem.');
+            }
+        });
+
+        skillImageControls.addEventListener('click', async (event) => {
+            if (!event.target.classList.contains('use-skill-image-url')) return;
+            const button = event.target;
+            const card = button.closest('[data-skill-key]');
+            const urlInput = card.querySelector('.skill-image-url');
+            button.disabled = true;
+            const image = await loadImageFromUrl(urlInput.value.trim());
+            button.disabled = false;
+            if (image) {
+                skillImages.set(card.dataset.skillKey, image);
+                skillImageUrls.set(card.dataset.skillKey, urlInput.value.trim());
+                renderSkillImageControls();
+                drawBanner();
+                showToast('Imagem da tecnologia atualizada pelo link.');
+            } else {
+                showToast('Não foi possível usar esse link. Verifique se a imagem é pública e se a URL está correta.');
+            }
+        });
+
+        toggleCodeBg.addEventListener('change', () => drawBanner());
+        toggleAvatarGuide.addEventListener('change', () => drawBanner());
+        toggleAllLogosOnly.addEventListener('change', () => drawBanner());
+        toggleInstitutionSubtitle.addEventListener('change', () => drawBanner());
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3500);
+        }
+
+        downloadBtn.addEventListener('click', () => {
+            drawBanner(false);
+            const dataURL = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'banner-linkedin-dev.png';
+            link.href = dataURL;
+            link.click();
+
+            drawBanner(toggleAvatarGuide.checked);
+            showToast('Banner PNG (1584x396) baixado com sucesso!');
+        });
+
+        function isBannerFullscreen() {
+            return document.fullscreenElement === bannerPreview;
+        }
+
+        function clampFullscreenPan() {
+            const previewRect = bannerPreview.getBoundingClientRect();
+            // offsetWidth/offsetHeight não consideram o transform aplicado pelo zoom.
+            const baseWidth = canvas.offsetWidth;
+            const baseHeight = canvas.offsetHeight;
+            const maxX = Math.max(0, (baseWidth * fullscreenScale - previewRect.width) / 2);
+            const maxY = Math.max(0, (baseHeight * fullscreenScale - previewRect.height) / 2);
+            fullscreenPan.x = Math.min(maxX, Math.max(-maxX, fullscreenPan.x));
+            fullscreenPan.y = Math.min(maxY, Math.max(-maxY, fullscreenPan.y));
+        }
+
+        function renderFullscreenZoom(animate = false) {
+            if (!isBannerFullscreen()) return;
+            clampFullscreenPan();
+            canvas.style.transition = animate ? 'transform 160ms ease-out' : 'none';
+            canvas.style.transform = `translate(${fullscreenPan.x}px, ${fullscreenPan.y}px) scale(${fullscreenScale})`;
+            zoomLevel.textContent = `${Math.round(fullscreenScale * 100)}%`;
+        }
+
+        function setFullscreenZoom(nextScale, animate = true) {
+            fullscreenScale = Math.min(8, Math.max(1, nextScale));
+            renderFullscreenZoom(animate);
+        }
+
+        function resetFullscreenZoom(useMobileDefault = false) {
+            const previewRect = bannerPreview.getBoundingClientRect();
+            // Em retrato, a proporção 4:1 do banner ficaria pequena demais. Abrimos em 300%
+            // e o botão "Ajustar" volta a mostrar o banner inteiro quando for necessário.
+            fullscreenScale = useMobileDefault && previewRect.height > previewRect.width ? 3 : 1;
+            fullscreenPan = { x: 0, y: 0 };
+            renderFullscreenZoom(true);
+        }
+
+        function getPointerDistance(pointers) {
+            const [first, second] = pointers;
+            return Math.hypot(second.x - first.x, second.y - first.y);
+        }
+
+        function beginPanGesture(pointer) {
+            fullscreenGesture = {
+                type: 'pan',
+                startX: pointer.x,
+                startY: pointer.y,
+                panX: fullscreenPan.x,
+                panY: fullscreenPan.y
+            };
+        }
+
+        function beginPinchGesture() {
+            const pointers = [...fullscreenPointers.values()];
+            fullscreenGesture = {
+                type: 'pinch',
+                startDistance: getPointerDistance(pointers),
+                scale: fullscreenScale
+            };
+        }
+
+        bannerPreview.addEventListener('pointerdown', (event) => {
+            if (!isBannerFullscreen() || event.target.closest('.fullscreen-controls, .fullscreen-exit')) return;
+            event.preventDefault();
+            bannerPreview.setPointerCapture(event.pointerId);
+            fullscreenPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            if (fullscreenPointers.size === 1) beginPanGesture({ x: event.clientX, y: event.clientY });
+            else if (fullscreenPointers.size === 2) beginPinchGesture();
+        });
+
+        bannerPreview.addEventListener('pointermove', (event) => {
+            if (!isBannerFullscreen() || !fullscreenPointers.has(event.pointerId)) return;
+            event.preventDefault();
+            fullscreenPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            const pointers = [...fullscreenPointers.values()];
+            if (pointers.length >= 2 && fullscreenGesture?.type === 'pinch') {
+                const distance = getPointerDistance(pointers);
+                if (fullscreenGesture.startDistance > 0) {
+                    setFullscreenZoom(fullscreenGesture.scale * (distance / fullscreenGesture.startDistance), false);
+                }
+            } else if (pointers.length === 1 && fullscreenGesture?.type === 'pan') {
+                fullscreenPan.x = fullscreenGesture.panX + event.clientX - fullscreenGesture.startX;
+                fullscreenPan.y = fullscreenGesture.panY + event.clientY - fullscreenGesture.startY;
+                renderFullscreenZoom(false);
+            }
+        });
+
+        function endFullscreenPointer(event) {
+            fullscreenPointers.delete(event.pointerId);
+            if (fullscreenPointers.size === 1) beginPanGesture([...fullscreenPointers.values()][0]);
+            else if (!fullscreenPointers.size) fullscreenGesture = null;
+        }
+
+        bannerPreview.addEventListener('pointerup', endFullscreenPointer);
+        bannerPreview.addEventListener('pointercancel', endFullscreenPointer);
+        bannerPreview.addEventListener('wheel', (event) => {
+            if (!isBannerFullscreen()) return;
+            event.preventDefault();
+            setFullscreenZoom(fullscreenScale * Math.exp(-event.deltaY * 0.001), false);
+        }, { passive: false });
+
+        function updateFullscreenButton() {
+            const isFullscreen = isBannerFullscreen();
+            fullscreenBtn.querySelector('i').className = isFullscreen ? 'fa-solid fa-compress' : 'fa-solid fa-expand';
+            fullscreenBtn.querySelector('span').textContent = isFullscreen ? 'Sair da tela cheia' : 'Tela cheia';
+            fullscreenBtn.title = isFullscreen ? 'Sair da visualização em tela cheia' : 'Visualizar em tela cheia';
+            fullscreenBtn.setAttribute('aria-label', fullscreenBtn.title);
+        }
+
+        fullscreenBtn.addEventListener('click', async () => {
+            try {
+                if (document.fullscreenElement) await document.exitFullscreen();
+                else await bannerPreview.requestFullscreen();
+            } catch {
+                showToast('A visualização em tela cheia não está disponível neste navegador.');
+            }
+        });
+
+        exitFullscreenBtn.addEventListener('click', async () => {
+            if (document.fullscreenElement) await document.exitFullscreen();
+        });
+
+        zoomInBtn.addEventListener('click', () => setFullscreenZoom(fullscreenScale + 0.5));
+        zoomOutBtn.addEventListener('click', () => setFullscreenZoom(fullscreenScale - 0.5));
+        zoomResetBtn.addEventListener('click', () => resetFullscreenZoom());
+
+        document.addEventListener('fullscreenchange', () => {
+            updateFullscreenButton();
+            fullscreenPointers.clear();
+            fullscreenGesture = null;
+            if (isBannerFullscreen()) {
+                requestAnimationFrame(() => resetFullscreenZoom(true));
+            } else {
+                fullscreenScale = 1;
+                fullscreenPan = { x: 0, y: 0 };
+                canvas.style.transform = '';
+                canvas.style.transition = '';
+                zoomLevel.textContent = '100%';
+            }
+        });
+
+        window.onload = function() {
+            renderSkillImageControls();
+            updateLinkedInHeadlineTip();
+            drawBanner();
+        };
+    </script>
+</body>
+</html>
