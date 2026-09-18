@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de Banner para LinkedIn</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -42,6 +44,28 @@
             aspect-ratio: 1584 / 396;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
         }
+        .custom-color-field {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            border: 1px solid rgb(51 65 85);
+            border-radius: 0.5rem;
+            background: rgb(15 23 42 / 0.8);
+            padding: 0.45rem 0.55rem;
+            color: #94a3b8;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .custom-color-field input {
+            width: 1.75rem;
+            height: 1.75rem;
+            padding: 0;
+            border: 0;
+            border-radius: 0.35rem;
+            background: transparent;
+            cursor: pointer;
+        }
         #bannerPreview:fullscreen {
             width: 100vw;
             height: 100vh;
@@ -75,14 +99,8 @@
             display: flex;
         }
         @media (min-width: 1024px) {
-            .preview-workspace.has-logo-controls {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) 220px;
-                align-items: start;
-                gap: 1rem;
-            }
             .logo-scale-controls {
-                max-height: 270px;
+                max-height: 510px;
                 overflow-y: auto;
             }
         }
@@ -93,7 +111,8 @@
             .mobile-preview-card { order: 1; }
             .mobile-content-card { order: 2; }
             .mobile-design-card { order: 3; }
-            .mobile-settings-card { order: 4; }
+            .mobile-logo-scale-card { order: 4; }
+            .mobile-settings-card { order: 5; }
         }
         @media (max-width: 639px) {
             input:not([type='checkbox']),
@@ -102,6 +121,9 @@
             }
             input:not([type='checkbox']) {
                 font-size: 16px !important;
+            }
+            .custom-color-field input {
+                min-height: 1.75rem;
             }
             #bannerPreview:fullscreen .fullscreen-exit {
                 top: 12px;
@@ -136,9 +158,7 @@
     <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-3 py-3 sm:px-4">
         <div class="max-w-7xl mx-auto flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-cyan-500/20">
-                    <i class="fa-solid fa-code"></i>
-                </div>
+                <img src="favicon.svg" width="40" height="40" alt="LinkedIn Banner Studio" class="h-10 w-10 shrink-0 rounded-xl shadow-lg shadow-cyan-500/20">
                 <div>
                     <h1 class="font-bold text-lg text-white leading-tight">LinkedIn Banner Studio</h1>
                 </div>
@@ -165,7 +185,6 @@
         
         <!-- Left Column: Controls & Customization -->
         <div class="mobile-flow space-y-4 sm:space-y-6 lg:col-span-5">
-            
             <div class="mobile-design-card space-y-5 rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-xl sm:space-y-6 sm:p-5">
                 <div>
                     <h2 class="text-sm font-semibold uppercase tracking-wider text-cyan-400 mb-4 flex items-center gap-2"><i class="fa-solid fa-palette"></i> Escolha o Estilo do Banner</h2>
@@ -174,6 +193,19 @@
                         <button onclick="applyPreset('minimal')" class="preset-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition group" data-preset="minimal"><div class="text-xs font-mono text-indigo-400 mb-1">02. Minimalist Slate</div><div class="text-sm font-medium text-slate-200">Clean & Elegante</div></button>
                         <button onclick="applyPreset('circuit')" class="preset-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition group" data-preset="circuit"><div class="text-xs font-mono text-emerald-400 mb-1">03. High Performance</div><div class="text-sm font-medium text-slate-200">Emerald Systems</div></button>
                         <button onclick="applyPreset('corporate')" class="preset-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition group" data-preset="corporate"><div class="text-xs font-mono text-blue-400 mb-1">04. Deep Executive</div><div class="text-sm font-medium text-slate-200">Sober & Reliable</div></button>
+                        <button onclick="applyPreset('custom')" class="preset-btn p-3 rounded-xl border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition group" data-preset="custom"><div class="text-xs font-mono text-pink-400 mb-1">05. Personalizado</div><div class="text-sm font-medium text-slate-200">Escolha suas cores</div></button>
+                    </div>
+                    <div id="customColorControls" class="hidden mt-4 rounded-xl border border-fuchsia-500/30 bg-slate-950/70 p-3.5">
+                        <div class="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-fuchsia-300"><i class="fa-solid fa-wand-magic-sparkles"></i> Paleta personalizada</div>
+                        <p class="mb-3 text-[11px] leading-relaxed text-slate-400">As alterações aparecem instantaneamente no banner.</p>
+                        <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                            <label class="custom-color-field"><span>Fundo 1</span><input id="customBgStart" type="color" value="#020817"></label>
+                            <label class="custom-color-field"><span>Fundo 2</span><input id="customBgMiddle" type="color" value="#081738"></label>
+                            <label class="custom-color-field"><span>Fundo 3</span><input id="customBgEnd" type="color" value="#030a1e"></label>
+                            <label class="custom-color-field"><span>Destaque 1</span><input id="customAccentStart" type="color" value="#38bdf8"></label>
+                            <label class="custom-color-field"><span>Destaque 2</span><input id="customAccentEnd" type="color" value="#c084fc"></label>
+                            <label class="custom-color-field"><span>Texto</span><input id="customTextColor" type="color" value="#ffffff"></label>
+                        </div>
                     </div>
                 </div>
                 <div class="pt-5 border-t border-slate-800">
@@ -240,21 +272,18 @@
                 </div>
 
                 <!-- Canvas Container -->
-                <div id="previewWorkspace" class="preview-workspace">
-                    <div id="bannerPreview" class="relative w-full rounded-xl overflow-hidden border border-slate-700/60 bg-black canvas-container">
-                        <canvas id="bannerCanvas" width="1584" height="396" class="w-full h-full block"></canvas>
-                        <button id="exitFullscreenBtn" type="button" class="fullscreen-exit absolute right-5 top-5 z-10 items-center gap-2 rounded-lg border border-slate-500/80 bg-slate-950/90 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur transition hover:border-cyan-400 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Sair da tela cheia" title="Sair da tela cheia">
-                            <i class="fa-solid fa-compress"></i>
-                            <span>Sair da tela cheia</span>
-                        </button>
-                        <div class="fullscreen-controls absolute bottom-5 left-5 z-10 items-center gap-1 rounded-xl border border-slate-500/80 bg-slate-950/90 p-1.5 text-white shadow-lg backdrop-blur" aria-label="Controles de zoom">
-                            <button id="zoomOutBtn" type="button" class="flex items-center justify-center rounded-lg px-3 py-2 text-sm font-bold transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Diminuir zoom" title="Diminuir zoom"><i class="fa-solid fa-minus"></i></button>
-                            <span id="zoomLevel" class="min-w-12 select-none text-center text-xs font-semibold text-slate-200" aria-live="polite">100%</span>
-                            <button id="zoomInBtn" type="button" class="flex items-center justify-center rounded-lg px-3 py-2 text-sm font-bold transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Aumentar zoom" title="Aumentar zoom"><i class="fa-solid fa-plus"></i></button>
-                            <button id="zoomResetBtn" type="button" class="rounded-lg px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" title="Ver o banner inteiro">Ajustar</button>
-                        </div>
+                <div id="bannerPreview" class="relative w-full rounded-xl overflow-hidden border border-slate-700/60 bg-black canvas-container">
+                    <canvas id="bannerCanvas" width="1584" height="396" class="w-full h-full block"></canvas>
+                    <button id="exitFullscreenBtn" type="button" class="fullscreen-exit absolute right-5 top-5 z-10 items-center gap-2 rounded-lg border border-slate-500/80 bg-slate-950/90 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur transition hover:border-cyan-400 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Sair da tela cheia" title="Sair da tela cheia">
+                        <i class="fa-solid fa-compress"></i>
+                        <span>Sair da tela cheia</span>
+                    </button>
+                    <div class="fullscreen-controls absolute bottom-5 left-5 z-10 items-center gap-1 rounded-xl border border-slate-500/80 bg-slate-950/90 p-1.5 text-white shadow-lg backdrop-blur" aria-label="Controles de zoom">
+                        <button id="zoomOutBtn" type="button" class="flex items-center justify-center rounded-lg px-3 py-2 text-sm font-bold transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Diminuir zoom" title="Diminuir zoom"><i class="fa-solid fa-minus"></i></button>
+                        <span id="zoomLevel" class="min-w-12 select-none text-center text-xs font-semibold text-slate-200" aria-live="polite">100%</span>
+                        <button id="zoomInBtn" type="button" class="flex items-center justify-center rounded-lg px-3 py-2 text-sm font-bold transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Aumentar zoom" title="Aumentar zoom"><i class="fa-solid fa-plus"></i></button>
+                        <button id="zoomResetBtn" type="button" class="rounded-lg px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" title="Ver o banner inteiro">Ajustar</button>
                     </div>
-                    <aside id="logoScaleControls" class="logo-scale-controls hidden rounded-xl border border-cyan-500/30 bg-slate-950/80 p-3 shadow-inner" aria-live="polite"></aside>
                 </div>
 
                 <!-- Explanation Banner -->
@@ -274,6 +303,8 @@
                     </div>
                 </div>
             </div>
+
+            <aside id="logoScaleControls" class="mobile-logo-scale-card logo-scale-controls hidden rounded-2xl border border-cyan-500/30 bg-slate-900 p-4 shadow-xl sm:p-5" aria-live="polite"></aside>
 
             <!-- Banner settings below preview -->
             <div class="mobile-settings-card space-y-5 rounded-2xl border border-slate-800 bg-slate-900 p-4 shadow-xl sm:space-y-6 sm:p-5">
@@ -332,7 +363,6 @@
     <script>
         let canvas = document.getElementById('bannerCanvas');
         const bannerPreview = document.getElementById('bannerPreview');
-        const previewWorkspace = document.getElementById('previewWorkspace');
         let ctx = canvas.getContext('2d');
 
         // Form elements
@@ -340,6 +370,15 @@
         const inputSubtitle = document.getElementById('inputSubtitle');
         const inputInstitution = document.getElementById('inputInstitution');
         const inputSkills = document.getElementById('inputSkills');
+        const customColorControls = document.getElementById('customColorControls');
+        const customColorInputs = {
+            bgStart: document.getElementById('customBgStart'),
+            bgMiddle: document.getElementById('customBgMiddle'),
+            bgEnd: document.getElementById('customBgEnd'),
+            accentStart: document.getElementById('customAccentStart'),
+            accentEnd: document.getElementById('customAccentEnd'),
+            text: document.getElementById('customTextColor')
+        };
         const institutionImageInput = document.getElementById('institutionImage');
         const institutionImageUrl = document.getElementById('institutionImageUrl');
         const useInstitutionImageUrl = document.getElementById('useInstitutionImageUrl');
@@ -417,8 +456,42 @@
                 badgeTitleColor: '#ffffff',
                 badgeSubColor: '#64748b',
                 dividerColor: 'rgba(255, 255, 255, 0.15)'
+            },
+            custom: {
+                bgGradient: ['#020817', '#081738', '#030a1e'],
+                flareColor: 'rgba(56, 189, 248, 0.25)',
+                lineGlowStart: '#38bdf8',
+                lineGlowEnd: '#c084fc',
+                textColor: '#ffffff',
+                subtitleColor: '#bae6fd',
+                badgeTitleColor: '#ffffff',
+                badgeSubColor: '#94a3b8',
+                dividerColor: 'rgba(255, 255, 255, 0.15)'
             }
         };
+
+        function hexToRgba(hex, alpha) {
+            const normalized = hex.replace('#', '');
+            const red = parseInt(normalized.slice(0, 2), 16);
+            const green = parseInt(normalized.slice(2, 4), 16);
+            const blue = parseInt(normalized.slice(4, 6), 16);
+            return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+        }
+
+        function syncCustomPreset() {
+            const colors = customColorInputs;
+            PRESETS.custom = {
+                bgGradient: [colors.bgStart.value, colors.bgMiddle.value, colors.bgEnd.value],
+                flareColor: hexToRgba(colors.accentStart.value, 0.25),
+                lineGlowStart: colors.accentStart.value,
+                lineGlowEnd: colors.accentEnd.value,
+                textColor: colors.text.value,
+                subtitleColor: hexToRgba(colors.text.value, 0.78),
+                badgeTitleColor: colors.text.value,
+                badgeSubColor: hexToRgba(colors.text.value, 0.58),
+                dividerColor: hexToRgba(colors.text.value, 0.18)
+            };
+        }
 
         function drawBanner(includeGuide = toggleAvatarGuide.checked, renderScale = 1) {
             const config = PRESETS[currentPreset];
@@ -440,8 +513,8 @@
             const logoOnly = toggleAllLogosOnly.checked || toggleLogosWithoutLabels.checked;
             const hideBadgeText = toggleLogosWithoutLabels.checked;
             const items = [
-                { title: inputInstitution.value.trim() || "Instituição", sub: "Formação", type: "institution", image: institutionImage, imageScale: institutionImageScale, logoOnly, hideBadgeText },
-                ...getSkills().map(skill => ({ ...skill, image: skillImages.get(skill.key) || null, imageScale: skillImageScales.get(skill.key) || 1, logoOnly, hideBadgeText }))
+                { title: inputInstitution.value.trim() || "Instituição", sub: "Formação", type: "institution", image: institutionImage, imageScale: institutionImageScale, adjustableLogoSize: logoOnly, logoOnly, hideBadgeText },
+                ...getSkills().map(skill => ({ ...skill, image: skillImages.get(skill.key) || null, imageScale: skillImageScales.get(skill.key) || 1, adjustableLogoSize: logoOnly, logoOnly, hideBadgeText }))
             ];
             drawSelectedTemplate(config, items, width, height);
 
@@ -579,7 +652,7 @@
                             : Math.min(104, badgeWidth - 28)
                         : logoSize;
                     const imageLogoSize = item.image
-                        ? baseImageLogoSize * (item.imageScale || 1)
+                        ? baseImageLogoSize * (item.adjustableLogoSize ? item.imageScale || 1 : 1)
                         : logoSize;
                     const logoX = badgeCenterX - imageLogoSize / 2;
                     const logoY = badgeY + (iconOnlyGallery ? 52 : 29);
@@ -893,6 +966,8 @@
 
         function applyPreset(presetKey) {
             currentPreset = presetKey;
+            customColorControls.classList.toggle('hidden', presetKey !== 'custom');
+            if (presetKey === 'custom') syncCustomPreset();
             document.querySelectorAll('.preset-btn').forEach(btn => {
                 if (btn.dataset.preset === presetKey) {
                     btn.classList.add('border-cyan-500', 'bg-slate-800', 'ring-1', 'ring-cyan-500');
@@ -904,6 +979,14 @@
             });
             drawBanner();
         }
+
+        Object.values(customColorInputs).forEach(input => {
+            input.addEventListener('input', () => {
+                syncCustomPreset();
+                if (currentPreset !== 'custom') applyPreset('custom');
+                else drawBanner();
+            });
+        });
 
         function applyTemplate(templateKey) {
             currentTemplate = templateKey;
@@ -1031,10 +1114,10 @@
 
         function renderLogoScaleControls() {
             const loadedItems = getLoadedLogoItems();
-            const hasLoadedItems = loadedItems.length > 0;
-            logoScaleControls.classList.toggle('hidden', !hasLoadedItems);
-            previewWorkspace.classList.toggle('has-logo-controls', hasLoadedItems);
-            if (!hasLoadedItems) {
+            const canAdjustLogos = toggleAllLogosOnly.checked || toggleLogosWithoutLabels.checked;
+            const shouldShowControls = loadedItems.length > 0 && canAdjustLogos;
+            logoScaleControls.classList.toggle('hidden', !shouldShowControls);
+            if (!shouldShowControls) {
                 logoScaleControls.innerHTML = '';
                 return;
             }
@@ -1044,7 +1127,7 @@
                     <i class="fa-solid fa-sliders"></i>
                     Ajuste ao vivo das logos
                 </div>
-                <p class="mb-3 text-[11px] leading-relaxed text-slate-400">Aparecem somente logos já carregadas. O ajuste é individual e reflete na prévia na hora.</p>
+                <p class="mb-3 text-[11px] leading-relaxed text-slate-400">Aparecem somente logos já carregadas quando um modo de selos com logo está ativo. O ajuste é individual e reflete na prévia na hora.</p>
                 <div class="space-y-3">
                     ${loadedItems.map(item => {
                         const percentage = Math.round(item.scale * 100);
@@ -1134,10 +1217,12 @@
         toggleAvatarGuide.addEventListener('change', () => drawBanner());
         toggleAllLogosOnly.addEventListener('change', () => {
             if (toggleAllLogosOnly.checked) toggleLogosWithoutLabels.checked = false;
+            renderLogoScaleControls();
             drawBanner();
         });
         toggleLogosWithoutLabels.addEventListener('change', () => {
             if (toggleLogosWithoutLabels.checked) toggleAllLogosOnly.checked = false;
+            renderLogoScaleControls();
             drawBanner();
         });
         toggleInstitutionSubtitle.addEventListener('change', () => drawBanner());

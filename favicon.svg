@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">LinkedIn Banner Studio</title>
+  <desc id="desc">Uma área de banner profissional com foto de perfil, conteúdo e brilho de criação.</desc>
+  <defs>
+    <linearGradient id="app-background" x1="56" y1="42" x2="458" y2="478" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b2650"/>
+      <stop offset="0.48" stop-color="#071735"/>
+      <stop offset="1" stop-color="#20134d"/>
+    </linearGradient>
+    <linearGradient id="canvas-fill" x1="90" y1="153" x2="424" y2="357" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#153d76"/>
+      <stop offset="0.56" stop-color="#0d2452"/>
+      <stop offset="1" stop-color="#24185e"/>
+    </linearGradient>
+    <linearGradient id="neon" x1="120" y1="184" x2="398" y2="337" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22d3ee"/>
+      <stop offset="0.48" stop-color="#60a5fa"/>
+      <stop offset="1" stop-color="#c084fc"/>
+    </linearGradient>
+    <linearGradient id="avatar-fill" x1="130" y1="263" x2="207" y2="341" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#818cf8"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="370" y1="86" x2="440" y2="150" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e9d5ff"/>
+      <stop offset="1" stop-color="#67e8f9"/>
+    </linearGradient>
+    <filter id="soft-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="132" fill="url(#app-background)"/>
+  <rect x="22" y="22" width="468" height="468" rx="111" fill="none" stroke="#38bdf8" stroke-opacity=".22" stroke-width="10"/>
+  <circle cx="394" cy="120" r="45" fill="#a78bfa" opacity=".18" filter="url(#soft-glow)"/>
+  <rect x="72" y="151" width="368" height="213" rx="46" fill="#020d24" stroke="url(#neon)" stroke-opacity=".68" stroke-width="8"/>
+  <path d="M76 302c61-83 129-84 194-104 63-19 113-24 166-72v192H76Z" fill="url(#canvas-fill)" opacity=".93"/>
+  <path d="M80 318c68-57 127-41 195-73 56-26 100-44 160-98v171H80Z" fill="#061938" opacity=".46"/>
+  <circle cx="156" cy="305" r="68" fill="#071a3b" stroke="url(#avatar-fill)" stroke-width="16"/>
+  <circle cx="156" cy="305" r="30" fill="#38bdf8"/>
+  <circle cx="156" cy="305" r="30" fill="#38bdf8" opacity=".34" filter="url(#soft-glow)"/>
+  <path d="M252 245h122" stroke="url(#neon)" stroke-linecap="round" stroke-width="22"/>
+  <path d="M252 285h92" stroke="url(#neon)" stroke-linecap="round" stroke-width="18"/>
+  <path d="M252 321h58" stroke="url(#neon)" stroke-linecap="round" stroke-width="16"/>
+  <path d="M398 72v55M370.5 99.5h55" stroke="url(#glow)" stroke-linecap="round" stroke-width="17"/>
+  <path d="M439 120v28M425 134h28" stroke="#38bdf8" stroke-linecap="round" stroke-width="12"/>
+</svg>
