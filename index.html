@@ -165,14 +165,17 @@
             </div>
             
             <div class="flex w-full items-center gap-2 sm:w-auto">
-                <label for="downloadScale" class="sr-only">Escala de exportação</label>
-                <select id="downloadScale" class="min-h-11 shrink-0 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-semibold text-cyan-300 outline-none transition focus:border-cyan-500" title="Escolha a resolução do PNG">
-                    <option value="1">1×</option>
-                    <option value="2">2×</option>
-                    <option value="3">3×</option>
-                    <option value="4">4×</option>
-                    <option value="5">5×</option>
-                </select>
+                <div class="min-w-0 flex-1 sm:flex-none">
+                    <label for="downloadScale" class="sr-only">Escala de exportação</label>
+                    <select id="downloadScale" class="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-semibold text-cyan-300 outline-none transition focus:border-cyan-500" title="Escolha a resolução do PNG">
+                        <option value="1">1× · Padrão</option>
+                        <option value="2">2× · Alta</option>
+                        <option value="3">3× · Muito alta</option>
+                        <option value="4">4× · Máxima</option>
+                        <option value="5">5× · Máxima</option>
+                    </select>
+                    <span id="downloadScaleHint" class="mt-1 hidden whitespace-nowrap text-[10px] text-slate-400 sm:block">1× = 1584 × 396 px</span>
+                </div>
                 <button id="downloadBtn" class="flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2.5 font-semibold text-white shadow-lg shadow-cyan-500/25 transition-all duration-200 hover:from-cyan-400 hover:to-blue-500 sm:flex-none sm:px-5 transform hover:-translate-y-0.5 active:translate-y-0">
                     <i class="fa-solid fa-download"></i>
                     <span>Baixar PNG</span>
@@ -392,6 +395,7 @@
         const linkedinHeadlineTip = document.getElementById('linkedinHeadlineTip');
         const downloadBtn = document.getElementById('downloadBtn');
         const downloadScale = document.getElementById('downloadScale');
+        const downloadScaleHint = document.getElementById('downloadScaleHint');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
         const zoomInBtn = document.getElementById('zoomInBtn');
@@ -1237,6 +1241,16 @@
             }, 3500);
         }
 
+        function updateDownloadScaleHint() {
+            const scale = Number(downloadScale.value) || 1;
+            const width = 1584 * scale;
+            const height = 396 * scale;
+            downloadScaleHint.textContent = `${scale}× = ${width} × ${height} px`;
+            downloadScale.title = `${scale}× exporta em ${width} × ${height} px`;
+        }
+
+        downloadScale.addEventListener('change', updateDownloadScaleHint);
+
         downloadBtn.addEventListener('click', () => {
             const exportScale = Number(downloadScale.value) || 1;
             const originalCanvas = canvas;
@@ -1410,6 +1424,7 @@
             renderSkillImageControls();
             updateLinkedInHeadlineTip();
             renderLogoScaleControls();
+            updateDownloadScaleHint();
             drawBanner();
         };
     </script>
