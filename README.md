@@ -7,7 +7,7 @@ Gerador visual de banners para LinkedIn, voltado a perfis de tecnologia. O proje
 - Seis modelos de composição para o banner.
 - Quatro estilos de cores.
 - Nome, cargo, instituição e tecnologias personalizáveis.
-- Logos por upload ou URL para a instituição e cada tecnologia.
+- Logos por upload ou URL para a instituição e cada tecnologia, com ajuste individual de `50%` a `300%` ao lado da prévia.
 - Opção de selos com logos ampliadas.
 - Guia opcional da área coberta pela foto de perfil do LinkedIn.
 - Visualização em tela cheia com zoom, pinça, arrastar e ajuste à tela.
@@ -16,7 +16,7 @@ Gerador visual de banners para LinkedIn, voltado a perfis de tecnologia. O proje
 
 ## Como usar
 
-1. Abra [gerador_de_banner_linkedin.html](gerador_de_banner_linkedin.html) em um navegador moderno.
+1. Abra [index.html](index.html) em um navegador moderno.
 2. Informe nome, subtítulo, instituição e tecnologias.
 3. Escolha um estilo e um modelo.
 4. Opcionalmente, envie logos ou informe URLs públicas de imagens.
@@ -41,6 +41,18 @@ Em modo tela cheia, o banner abre ampliado em aparelhos na vertical para facilit
 - [Font Awesome](https://fontawesome.com/) e Google Fonts via CDN.
 
 Não é necessário instalar pacotes nem executar um servidor para usar o projeto.
+
+## Publicação no GitHub Pages
+
+O arquivo de entrada do projeto é o `index.html`, portanto ele é reconhecido automaticamente pelo GitHub Pages.
+
+O repositório já possui um workflow em [`.github/workflows/static.yml`](.github/workflows/static.yml): após um `push` na branch `main`, ele publica a versão atualizada pelo GitHub Actions.
+
+Se for a primeira publicação, acesse **Settings → Pages** no repositório e selecione **GitHub Actions** como fonte de implantação. Depois que o workflow concluir, o projeto ficará disponível em:
+
+```text
+https://SEU-USUARIO.github.io/NOME-DO-REPOSITORIO/
+```
 
 ## Licença
 

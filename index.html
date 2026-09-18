@@ -74,6 +74,18 @@
         #bannerPreview:fullscreen .fullscreen-controls {
             display: flex;
         }
+        @media (min-width: 1024px) {
+            .preview-workspace.has-logo-controls {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 220px;
+                align-items: start;
+                gap: 1rem;
+            }
+            .logo-scale-controls {
+                max-height: 270px;
+                overflow-y: auto;
+            }
+        }
         @media (max-width: 1023px) {
             #workspace > .mobile-flow {
                 display: contents;
@@ -228,18 +240,21 @@
                 </div>
 
                 <!-- Canvas Container -->
-                <div id="bannerPreview" class="relative w-full rounded-xl overflow-hidden border border-slate-700/60 bg-black canvas-container">
-                    <canvas id="bannerCanvas" width="1584" height="396" class="w-full h-full block"></canvas>
-                    <button id="exitFullscreenBtn" type="button" class="fullscreen-exit absolute right-5 top-5 z-10 items-center gap-2 rounded-lg border border-slate-500/80 bg-slate-950/90 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur transition hover:border-cyan-400 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Sair da tela cheia" title="Sair da tela cheia">
-                        <i class="fa-solid fa-compress"></i>
-                        <span>Sair da tela cheia</span>
-                    </button>
-                    <div class="fullscreen-controls absolute bottom-5 left-5 z-10 items-center gap-1 rounded-xl border border-slate-500/80 bg-slate-950/90 p-1.5 text-white shadow-lg backdrop-blur" aria-label="Controles de zoom">
-                        <button id="zoomOutBtn" type="button" class="flex items-center justify-center rounded-lg px-3 py-2 text-sm font-bold transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Diminuir zoom" title="Diminuir zoom"><i class="fa-solid fa-minus"></i></button>
-                        <span id="zoomLevel" class="min-w-12 select-none text-center text-xs font-semibold text-slate-200" aria-live="polite">100%</span>
-                        <button id="zoomInBtn" type="button" class="flex items-center justify-center rounded-lg px-3 py-2 text-sm font-bold transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Aumentar zoom" title="Aumentar zoom"><i class="fa-solid fa-plus"></i></button>
-                        <button id="zoomResetBtn" type="button" class="rounded-lg px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" title="Ver o banner inteiro">Ajustar</button>
+                <div id="previewWorkspace" class="preview-workspace">
+                    <div id="bannerPreview" class="relative w-full rounded-xl overflow-hidden border border-slate-700/60 bg-black canvas-container">
+                        <canvas id="bannerCanvas" width="1584" height="396" class="w-full h-full block"></canvas>
+                        <button id="exitFullscreenBtn" type="button" class="fullscreen-exit absolute right-5 top-5 z-10 items-center gap-2 rounded-lg border border-slate-500/80 bg-slate-950/90 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur transition hover:border-cyan-400 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Sair da tela cheia" title="Sair da tela cheia">
+                            <i class="fa-solid fa-compress"></i>
+                            <span>Sair da tela cheia</span>
+                        </button>
+                        <div class="fullscreen-controls absolute bottom-5 left-5 z-10 items-center gap-1 rounded-xl border border-slate-500/80 bg-slate-950/90 p-1.5 text-white shadow-lg backdrop-blur" aria-label="Controles de zoom">
+                            <button id="zoomOutBtn" type="button" class="flex items-center justify-center rounded-lg px-3 py-2 text-sm font-bold transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Diminuir zoom" title="Diminuir zoom"><i class="fa-solid fa-minus"></i></button>
+                            <span id="zoomLevel" class="min-w-12 select-none text-center text-xs font-semibold text-slate-200" aria-live="polite">100%</span>
+                            <button id="zoomInBtn" type="button" class="flex items-center justify-center rounded-lg px-3 py-2 text-sm font-bold transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Aumentar zoom" title="Aumentar zoom"><i class="fa-solid fa-plus"></i></button>
+                            <button id="zoomResetBtn" type="button" class="rounded-lg px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-400" title="Ver o banner inteiro">Ajustar</button>
+                        </div>
                     </div>
+                    <aside id="logoScaleControls" class="logo-scale-controls hidden rounded-xl border border-cyan-500/30 bg-slate-950/80 p-3 shadow-inner" aria-live="polite"></aside>
                 </div>
 
                 <!-- Explanation Banner -->
@@ -317,6 +332,7 @@
     <script>
         let canvas = document.getElementById('bannerCanvas');
         const bannerPreview = document.getElementById('bannerPreview');
+        const previewWorkspace = document.getElementById('previewWorkspace');
         let ctx = canvas.getContext('2d');
 
         // Form elements
@@ -328,6 +344,7 @@
         const institutionImageUrl = document.getElementById('institutionImageUrl');
         const useInstitutionImageUrl = document.getElementById('useInstitutionImageUrl');
         const skillImageControls = document.getElementById('skillImageControls');
+        const logoScaleControls = document.getElementById('logoScaleControls');
         const toggleCodeBg = document.getElementById('toggleCodeBg');
         const toggleAvatarGuide = document.getElementById('toggleAvatarGuide');
         const toggleAllLogosOnly = document.getElementById('toggleAllLogosOnly');
@@ -346,8 +363,11 @@
         let currentPreset = 'cyber';
         let currentTemplate = 'stack';
         let institutionImage = null;
+        let institutionImageScale = 1;
         const skillImages = new Map();
         const skillImageUrls = new Map();
+        const skillImageScales = new Map();
+        const WIDE_WORDMARK_ASPECT_RATIO = 2.25;
         const fullscreenPointers = new Map();
         let fullscreenScale = 1;
         let fullscreenPan = { x: 0, y: 0 };
@@ -420,8 +440,8 @@
             const logoOnly = toggleAllLogosOnly.checked || toggleLogosWithoutLabels.checked;
             const hideBadgeText = toggleLogosWithoutLabels.checked;
             const items = [
-                { title: inputInstitution.value.trim() || "Instituição", sub: "Formação", type: "institution", image: institutionImage, logoOnly, hideBadgeText },
-                ...getSkills().map(skill => ({ ...skill, image: skillImages.get(skill.key) || null, logoOnly, hideBadgeText }))
+                { title: inputInstitution.value.trim() || "Instituição", sub: "Formação", type: "institution", image: institutionImage, imageScale: institutionImageScale, logoOnly, hideBadgeText },
+                ...getSkills().map(skill => ({ ...skill, image: skillImages.get(skill.key) || null, imageScale: skillImageScales.get(skill.key) || 1, logoOnly, hideBadgeText }))
             ];
             drawSelectedTemplate(config, items, width, height);
 
@@ -529,7 +549,7 @@
             const iconOnlyGallery = logoGallery && items.every(item => item.hideBadgeText);
             const badgeWeights = items.map(item => {
                 const isHorizontalImage = item.image
-                    && item.image.naturalWidth / item.image.naturalHeight > 1.35;
+                    && item.image.naturalWidth / item.image.naturalHeight > WIDE_WORDMARK_ASPECT_RATIO;
                 return iconOnlyGallery && isHorizontalImage ? 1.55 : 1;
             });
             const totalBadgeWeight = badgeWeights.reduce((total, weight) => total + weight, 0) || itemCount;
@@ -551,10 +571,15 @@
 
                 if (item.logoOnly) {
                     const logoSize = Math.min(iconOnlyGallery ? 86 : 68, badgeWidth - (iconOnlyGallery ? 22 : 28));
-                    // Logos reais podem ser horizontais (como marcas de instituições).
-                    // No modo sem texto, elas recebem uma área mais larga para não parecerem minúsculas.
-                    const imageLogoSize = iconOnlyGallery && item.image
-                        ? Math.min(196, badgeWidth - 14)
+                    const imageAspectRatio = item.image?.naturalWidth / item.image?.naturalHeight;
+                    const isHorizontalImage = imageAspectRatio > WIDE_WORDMARK_ASPECT_RATIO;
+                    const baseImageLogoSize = iconOnlyGallery && item.image
+                        ? isHorizontalImage
+                            ? Math.min(196, badgeWidth - 14)
+                            : Math.min(104, badgeWidth - 28)
+                        : logoSize;
+                    const imageLogoSize = item.image
+                        ? baseImageLogoSize * (item.imageScale || 1)
                         : logoSize;
                     const logoX = badgeCenterX - imageLogoSize / 2;
                     const logoY = badgeY + (iconOnlyGallery ? 52 : 29);
@@ -899,6 +924,7 @@
             input.addEventListener('input', () => {
                 if (input === inputSkills) renderSkillImageControls();
                 updateLinkedInHeadlineTip();
+                renderLogoScaleControls();
                 drawBanner();
             });
         });
@@ -983,10 +1009,62 @@
             }).join('');
         }
 
+        function getLoadedLogoItems() {
+            const items = [];
+            if (institutionImage) {
+                items.push({
+                    key: 'institution',
+                    title: inputInstitution.value.trim() || 'Instituição',
+                    scale: institutionImageScale
+                });
+            }
+            getSkills().forEach(skill => {
+                if (!skillImages.has(skill.key)) return;
+                items.push({
+                    key: skill.key,
+                    title: skill.title,
+                    scale: skillImageScales.get(skill.key) || 1
+                });
+            });
+            return items;
+        }
+
+        function renderLogoScaleControls() {
+            const loadedItems = getLoadedLogoItems();
+            const hasLoadedItems = loadedItems.length > 0;
+            logoScaleControls.classList.toggle('hidden', !hasLoadedItems);
+            previewWorkspace.classList.toggle('has-logo-controls', hasLoadedItems);
+            if (!hasLoadedItems) {
+                logoScaleControls.innerHTML = '';
+                return;
+            }
+
+            logoScaleControls.innerHTML = `
+                <div class="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-cyan-300">
+                    <i class="fa-solid fa-sliders"></i>
+                    Ajuste ao vivo das logos
+                </div>
+                <p class="mb-3 text-[11px] leading-relaxed text-slate-400">Aparecem somente logos já carregadas. O ajuste é individual e reflete na prévia na hora.</p>
+                <div class="space-y-3">
+                    ${loadedItems.map(item => {
+                        const percentage = Math.round(item.scale * 100);
+                        return `
+                            <label class="block rounded-lg border border-slate-800 bg-slate-900/70 p-2.5">
+                                <span class="mb-2 flex items-center justify-between gap-2 text-xs font-semibold text-slate-200">
+                                    <span class="truncate">${escapeHtml(item.title)}</span>
+                                    <output class="logo-scale-value font-mono text-cyan-300">${percentage}%</output>
+                                </span>
+                                <input type="range" min="50" max="300" value="${percentage}" data-logo-key="${escapeHtml(item.key)}" class="logo-scale-input w-full accent-cyan-400" aria-label="Tamanho da logo ${escapeHtml(item.title)}">
+                            </label>`;
+                    }).join('')}
+                </div>`;
+        }
+
         institutionImageInput.addEventListener('change', async () => {
             const image = await loadLocalImage(institutionImageInput.files[0]);
             if (image) {
                 institutionImage = image;
+                renderLogoScaleControls();
                 drawBanner();
                 showToast('Logo da instituição atualizado.');
             } else {
@@ -998,6 +1076,7 @@
             const image = await loadImageFromUrl(institutionImageUrl.value.trim());
             if (image) {
                 institutionImage = image;
+                renderLogoScaleControls();
                 drawBanner();
                 showToast('Imagem da instituição atualizada pelo link.');
             } else {
@@ -1013,11 +1092,22 @@
                 skillImages.set(card.dataset.skillKey, image);
                 skillImageUrls.delete(card.dataset.skillKey);
                 renderSkillImageControls();
+                renderLogoScaleControls();
                 drawBanner();
                 showToast('Imagem da tecnologia atualizada.');
             } else {
                 showToast('Não foi possível carregar essa imagem.');
             }
+        });
+
+        logoScaleControls.addEventListener('input', (event) => {
+            if (!event.target.classList.contains('logo-scale-input')) return;
+            const scale = Number(event.target.value) / 100;
+            const key = event.target.dataset.logoKey;
+            if (key === 'institution') institutionImageScale = scale;
+            else skillImageScales.set(key, scale);
+            event.target.closest('label').querySelector('.logo-scale-value').textContent = `${event.target.value}%`;
+            drawBanner();
         });
 
         skillImageControls.addEventListener('click', async (event) => {
@@ -1032,6 +1122,7 @@
                 skillImages.set(card.dataset.skillKey, image);
                 skillImageUrls.set(card.dataset.skillKey, urlInput.value.trim());
                 renderSkillImageControls();
+                renderLogoScaleControls();
                 drawBanner();
                 showToast('Imagem da tecnologia atualizada pelo link.');
             } else {
@@ -1233,6 +1324,7 @@
         window.onload = function() {
             renderSkillImageControls();
             updateLinkedInHeadlineTip();
+            renderLogoScaleControls();
             drawBanner();
         };
     </script>
