@@ -155,7 +155,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between">
 
-    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-3 py-3 sm:px-4">
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-3 py-3 sm:px-4 sm:pb-7">
         <div class="max-w-7xl mx-auto flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
             <div class="flex items-center gap-3">
                 <img src="favicon.svg" width="40" height="40" alt="LinkedIn Banner Studio" class="h-10 w-10 shrink-0 rounded-xl shadow-lg shadow-cyan-500/20">
@@ -165,7 +165,14 @@
             </div>
             
             <div class="flex w-full items-center gap-2 sm:w-auto">
-                <div class="min-w-0 flex-1 sm:flex-none">
+                <div class="min-w-0 shrink-0">
+                    <label for="languageSelect" class="sr-only">Idioma da interface</label>
+                    <select id="languageSelect" class="min-h-11 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-semibold text-cyan-300 outline-none transition focus:border-cyan-500" title="Idioma da interface" aria-label="Idioma da interface">
+                        <option value="pt">PT</option>
+                        <option value="en">EN</option>
+                    </select>
+                </div>
+                <div class="relative min-w-0 flex-1 sm:flex-none">
                     <label for="downloadScale" class="sr-only">Escala de exportação</label>
                     <select id="downloadScale" class="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-semibold text-cyan-300 outline-none transition focus:border-cyan-500" title="Escolha a resolução do PNG">
                         <option value="1">1× · Padrão</option>
@@ -174,7 +181,7 @@
                         <option value="4">4× · Máxima</option>
                         <option value="5">5× · Máxima</option>
                     </select>
-                    <span id="downloadScaleHint" class="mt-1 hidden whitespace-nowrap text-[10px] text-slate-400 sm:block">1× = 1584 × 396 px</span>
+                    <span id="downloadScaleHint" class="absolute left-1/2 top-full mt-1 hidden -translate-x-1/2 whitespace-nowrap text-center text-[10px] text-slate-400 sm:block">1× = 1584 × 396 px</span>
                 </div>
                 <button id="downloadBtn" class="flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-2.5 font-semibold text-white shadow-lg shadow-cyan-500/25 transition-all duration-200 hover:from-cyan-400 hover:to-blue-500 sm:flex-none sm:px-5 transform hover:-translate-y-0.5 active:translate-y-0">
                     <i class="fa-solid fa-download"></i>
@@ -341,8 +348,9 @@
 
                 <div class="pt-5 border-t border-slate-800 space-y-3">
                     <div>
-                        <label for="institutionImage" class="block text-xs font-medium text-slate-400 mb-1">Imagem / logo da instituição</label>
-                        <input type="file" id="institutionImage" accept="image/*" class="block w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-cyan-500/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-cyan-300 hover:file:bg-cyan-500/25">
+                        <label id="institutionImageLabel" for="institutionImage" class="block text-xs font-medium text-slate-400 mb-1">Imagem / logo da instituição</label>
+                        <input type="file" id="institutionImage" accept="image/*" class="sr-only">
+                        <label id="institutionImageUploadLabel" for="institutionImage" class="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-cyan-500/15 px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-500/25"><i class="fa-solid fa-image"></i> Escolher imagem</label>
                         <div class="mt-2 flex flex-col gap-2 sm:flex-row"><input type="url" id="institutionImageUrl" placeholder="ou cole o link da imagem (https://...)" class="min-w-0 flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"><button type="button" id="useInstitutionImageUrl" class="w-full shrink-0 rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-cyan-300 hover:bg-slate-700 sm:w-auto">Usar link</button></div>
                     </div>
                     <div>
@@ -396,6 +404,7 @@
         const downloadBtn = document.getElementById('downloadBtn');
         const downloadScale = document.getElementById('downloadScale');
         const downloadScaleHint = document.getElementById('downloadScaleHint');
+        const languageSelect = document.getElementById('languageSelect');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
         const zoomInBtn = document.getElementById('zoomInBtn');
@@ -415,6 +424,208 @@
         let fullscreenScale = 1;
         let fullscreenPan = { x: 0, y: 0 };
         let fullscreenGesture = null;
+
+        const TRANSLATIONS = {
+            pt: {
+                pageTitle: 'Gerador de Banner para LinkedIn', languageLabel: 'Idioma da interface', exportScale: 'Escala de exportação', chooseResolution: 'Escolha a resolução do PNG',
+                scaleStandard: '1× · Padrão', scaleHigh: '2× · Alta', scaleVeryHigh: '3× · Muito alta', scaleMaximum: 'Máxima',
+                downloadPng: 'Baixar PNG', chooseStyle: 'Escolha o Estilo do Banner', chooseModel: 'Escolha o Modelo Profissional',
+                modelDescription: 'O modelo define a composição; o estilo escolhido acima continua controlando as cores.',
+                presetCyberTitle: '01. Brilho Tech Escuro', presetCyberDescription: 'Código moderno e ciano', presetMinimalTitle: '02. Ardósia Minimalista', presetMinimalDescription: 'Limpo e elegante', presetCircuitTitle: '03. Alto Desempenho', presetCircuitDescription: 'Sistemas esmeralda', presetCorporateTitle: '04. Executivo Profundo', presetCorporateDescription: 'Sólido e confiável',
+                custom: '05. Personalizado', chooseColors: 'Escolha suas cores', customPalette: 'Paleta personalizada', customPaletteDescription: 'As alterações aparecem instantaneamente no banner.',
+                backgroundOne: 'Fundo 1', backgroundTwo: 'Fundo 2', backgroundThree: 'Fundo 3', accentOne: 'Destaque 1', accentTwo: 'Destaque 2', text: 'Texto',
+                stackTitle: '01. Stack Direta', stackDescription: 'Tecnologias em destaque', showcaseTitle: '02. Mostruário de Logos', showcaseDescription: 'Identidade + logos', minimalTitle: '03. Identidade Minimalista', minimalDescription: 'Tipografia limpa e direta', timelineTitle: '04. Linha do Tempo Profissional', timelineDescription: 'Jornada e especialidades', credentialsTitle: '05. Faixa de Credenciais', credentialsDescription: 'Credenciais organizadas', signatureTitle: '06. Onda de Assinatura', signatureDescription: 'Marca pessoal sofisticada',
+                personalize: 'Personalizar Suas Informações', fullName: 'Seu Nome Completo', jobSubtitle: 'Cargo / Subtítulo', institution: 'Instituição', technologies: 'Tecnologias (separadas por vírgula)',
+                skillsHelp: 'Para definir uma categoria, use Tecnologia | Categoria. Ex.: PHP | Backend.', preview: 'Visualização em Tempo Real', fullscreen: 'Tela cheia', exitFullscreen: 'Sair da tela cheia', enterFullscreenTitle: 'Visualizar em tela cheia', exitFullscreenTitle: 'Sair da visualização em tela cheia',
+                zoomOut: 'Diminuir zoom', zoomIn: 'Aumentar zoom', fitBanner: 'Ver o banner inteiro', fit: 'Ajustar', zoomControls: 'Controles de zoom',
+                protectedPhotoArea: 'Área protegida para a foto de perfil', protectedPhotoDescription: 'O LinkedIn coloca sua foto de perfil nessa região; por isso, o conteúdo do banner começa mais à direita.',
+                protectedQuestion: 'Por que o canto inferior esquerdo está protegido?', protectedAnswer: 'O LinkedIn coloca sua foto de perfil circular exatamente sobre essa região. Todo o conteúdo textual foi projetado estrategicamente do meio para a direita para garantir total visibilidade em celulares e computadores!',
+                backgroundEffects: 'Efeito de Luz e Curvas de Fundo', showPhotoGuide: 'Mostrar Guia da Foto de Perfil', logoBadgesWithCategory: 'Selos: logos ampliadas com categoria abaixo', logoBadgesOnly: 'Selos: somente logos (sem texto)', showInstitutionInSubtitle: 'Mostrar instituição no subtítulo',
+                linkedinTipTitle: 'Dica de Título para seu LinkedIn:', linkedinTipDescription: 'Combine este banner com um ótimo título no perfil:', clickToCopy: 'Clique para copiar',
+                institutionImage: 'Imagem / logo da instituição', selectImage: 'Escolher imagem', imageUrlPlaceholder: 'ou cole o link da imagem (https://...)', skillImageUrlPlaceholder: 'https://exemplo.com/logo.png', useLink: 'Usar link', technologyImages: 'Imagens por tecnologia',
+                corsDescription: 'Cada tecnologia separada por vírgula cria seu próprio campo. Quando um site não libera CORS, o gerador tenta automaticamente um compatibilizador de imagens para preservar a exportação em PNG.',
+                noTechnology: 'Digite uma tecnologia para criar seu campo de imagem.', linkApplied: 'Link aplicado', uploadApplied: 'Upload aplicado', noImage: 'Sem imagem', outsideBannerLimit: 'fora do limite do banner',
+                logoAdjustment: 'Ajuste ao vivo das logos', logoAdjustmentDescription: 'Aparecem somente logos já carregadas quando um modo de selos com logo está ativo. O ajuste é individual e reflete na prévia na hora.', logoSize: 'Tamanho da logo',
+                institutionFallback: 'Instituição', education: 'Formação', technology: 'Tecnologia', nameFallback: 'Seu Nome Aqui', roleFallback: 'Seu subtítulo', jobFallback: 'Seu cargo',
+                photoProfile: 'FOTO DE PERFIL', photoReserved: '(Espaço reservado pelo LinkedIn)', personalBrand: 'MARCA PESSOAL', professionalIdentity: 'IDENTIDADE PROFISSIONAL', careerTimeline: 'TRAJETÓRIA PROFISSIONAL', coreCredentials: 'CREDENCIAIS PRINCIPAIS',
+                institutionLogoUpdated: 'Logo da instituição atualizada.', imageLoadFailed: 'Não foi possível carregar essa imagem.', institutionLinkUpdated: 'Imagem da instituição atualizada pelo link.', technologyImageUpdated: 'Imagem da tecnologia atualizada.', technologyLinkUpdated: 'Imagem da tecnologia atualizada pelo link.', imageLinkFailed: 'Não foi possível usar esse link. Verifique se a imagem é pública e se a URL está correta.',
+                defaultName: 'Seu Nome Aqui', defaultSubtitle: 'Desenvolvimento de Sistemas', initialToast: 'Banner baixado com sucesso!', exportTitle: '{scale}× exporta em {width} × {height} px', exportSuccess: 'Banner PNG ({width}×{height} · {scale}×) baixado com sucesso!', exportFailed: 'Não foi possível exportar. Verifique se todas as imagens usadas permitem exportação.', fullscreenUnavailable: 'A visualização em tela cheia não está disponível neste navegador.'
+            },
+            en: {
+                pageTitle: 'LinkedIn Banner Generator', languageLabel: 'Interface language', exportScale: 'Export scale', chooseResolution: 'Choose PNG resolution',
+                scaleStandard: '1× · Standard', scaleHigh: '2× · High', scaleVeryHigh: '3× · Very high', scaleMaximum: 'Maximum',
+                downloadPng: 'Download PNG', chooseStyle: 'Choose the Banner Style', chooseModel: 'Choose a Professional Layout',
+                modelDescription: 'The layout defines the composition; the style above continues to control the colors.',
+                presetCyberTitle: '01. Dark Tech Glow', presetCyberDescription: 'Modern Code & Cyan', presetMinimalTitle: '02. Minimalist Slate', presetMinimalDescription: 'Clean & Elegant', presetCircuitTitle: '03. High Performance', presetCircuitDescription: 'Emerald Systems', presetCorporateTitle: '04. Deep Executive', presetCorporateDescription: 'Polished & Reliable',
+                custom: '05. Custom', chooseColors: 'Choose your colors', customPalette: 'Custom palette', customPaletteDescription: 'Changes appear instantly in the banner.',
+                backgroundOne: 'Background 1', backgroundTwo: 'Background 2', backgroundThree: 'Background 3', accentOne: 'Accent 1', accentTwo: 'Accent 2', text: 'Text',
+                stackTitle: '01. Direct Stack', stackDescription: 'Highlighted technologies', showcaseTitle: '02. Logo Showcase', showcaseDescription: 'Identity + logos', minimalTitle: '03. Minimal Identity', minimalDescription: 'Clean, direct typography', timelineTitle: '04. Career Timeline', timelineDescription: 'Journey and specialties', credentialsTitle: '05. Credential Strip', credentialsDescription: 'Organized credentials', signatureTitle: '06. Signature Wave', signatureDescription: 'Sophisticated personal brand',
+                personalize: 'Customize Your Information', fullName: 'Your Full Name', jobSubtitle: 'Role / Subtitle', institution: 'Institution', technologies: 'Technologies (comma-separated)',
+                skillsHelp: 'To define a category, use Technology | Category. Example: PHP | Backend.', preview: 'Live Preview', fullscreen: 'Full screen', exitFullscreen: 'Exit full screen', enterFullscreenTitle: 'View in full screen', exitFullscreenTitle: 'Exit full-screen view',
+                zoomOut: 'Zoom out', zoomIn: 'Zoom in', fitBanner: 'Fit the whole banner', fit: 'Fit', zoomControls: 'Zoom controls',
+                protectedPhotoArea: 'Protected profile photo area', protectedPhotoDescription: 'LinkedIn places your profile photo in this area, so banner content starts further to the right.',
+                protectedQuestion: 'Why is the lower-left corner protected?', protectedAnswer: 'LinkedIn places your circular profile photo directly over this area. All text content is intentionally placed from the middle to the right so it stays visible on phones and computers!',
+                backgroundEffects: 'Background Light and Curves', showPhotoGuide: 'Show Profile Photo Guide', logoBadgesWithCategory: 'Badges: enlarged logos with category below', logoBadgesOnly: 'Badges: logos only (no text)', showInstitutionInSubtitle: 'Show institution in subtitle',
+                linkedinTipTitle: 'LinkedIn Headline Tip:', linkedinTipDescription: 'Pair this banner with a great profile headline:', clickToCopy: 'Click to copy',
+                institutionImage: 'Institution image / logo', selectImage: 'Choose image', imageUrlPlaceholder: 'or paste an image link (https://...)', skillImageUrlPlaceholder: 'https://example.com/logo.png', useLink: 'Use link', technologyImages: 'Images by technology',
+                corsDescription: 'Each technology separated by commas gets its own image field. When a site does not allow CORS, the generator automatically tries an image compatibility service to keep PNG export working.',
+                noTechnology: 'Enter a technology to create its image field.', linkApplied: 'Link applied', uploadApplied: 'Upload applied', noImage: 'No image', outsideBannerLimit: 'outside banner limit',
+                logoAdjustment: 'Live logo adjustment', logoAdjustmentDescription: 'Only loaded logos appear when a logo badge mode is active. Each adjustment is individual and updates the preview immediately.', logoSize: 'Logo size',
+                institutionFallback: 'Institution', education: 'Education', technology: 'Technology', nameFallback: 'Your Name Here', roleFallback: 'Your subtitle', jobFallback: 'Your role',
+                photoProfile: 'PROFILE PHOTO', photoReserved: '(Space reserved by LinkedIn)', personalBrand: 'PERSONAL BRAND', professionalIdentity: 'PROFESSIONAL IDENTITY', careerTimeline: 'CAREER TIMELINE', coreCredentials: 'CORE CREDENTIALS',
+                institutionLogoUpdated: 'Institution logo updated.', imageLoadFailed: 'This image could not be loaded.', institutionLinkUpdated: 'Institution image updated from link.', technologyImageUpdated: 'Technology image updated.', technologyLinkUpdated: 'Technology image updated from link.', imageLinkFailed: 'This link could not be used. Check that the image is public and the URL is correct.',
+                defaultName: 'Your Name Here', defaultSubtitle: 'Systems Development', initialToast: 'Banner downloaded successfully!', exportTitle: '{scale}× exports at {width} × {height} px', exportSuccess: 'PNG banner ({width}×{height} · {scale}×) downloaded successfully!', exportFailed: 'Export failed. Check whether every image used allows export.', fullscreenUnavailable: 'Full-screen preview is unavailable in this browser.'
+            }
+        };
+
+        function getSavedLanguage() {
+            try {
+                return localStorage.getItem('linkedinBannerLanguage') === 'en' ? 'en' : 'pt';
+            } catch {
+                return 'pt';
+            }
+        }
+
+        function saveLanguage(language) {
+            try {
+                localStorage.setItem('linkedinBannerLanguage', language);
+            } catch {
+                // O seletor continua funcionando mesmo quando o navegador bloqueia armazenamento local.
+            }
+        }
+
+        let currentLanguage = getSavedLanguage();
+
+        function t(key, values = {}) {
+            const template = TRANSLATIONS[currentLanguage][key] || TRANSLATIONS.pt[key] || key;
+            return template.replace(/\{(\w+)\}/g, (_, name) => values[name] ?? `{${name}}`);
+        }
+
+        function setText(selector, key) {
+            const element = typeof selector === 'string' ? document.querySelector(selector) : selector;
+            if (element) element.textContent = t(key);
+        }
+
+        function setIconLabel(selector, key) {
+            const element = typeof selector === 'string' ? document.querySelector(selector) : selector;
+            if (!element) return;
+            const icon = element.querySelector(':scope > i');
+            if (!icon) {
+                element.textContent = t(key);
+                return;
+            }
+            [...element.childNodes].forEach(node => { if (node !== icon) node.remove(); });
+            element.append(document.createTextNode(` ${t(key)}`));
+        }
+
+        function setInputLabel(input, key) {
+            const label = input?.parentElement?.querySelector('label');
+            if (label) label.textContent = t(key);
+        }
+
+        const userEditedInputs = new Set();
+        const localizedDefaultInputs = [
+            { input: inputName, key: 'defaultName' },
+            { input: inputSubtitle, key: 'defaultSubtitle' }
+        ];
+
+        function updateLocalizedDefaultInputs() {
+            localizedDefaultInputs.forEach(({ input, key }) => {
+                if (!userEditedInputs.has(input)) input.value = t(key);
+            });
+        }
+
+        function applyLanguage() {
+            document.documentElement.lang = currentLanguage === 'en' ? 'en' : 'pt-BR';
+            document.title = t('pageTitle');
+            languageSelect.value = currentLanguage;
+            languageSelect.title = t('languageLabel');
+            languageSelect.setAttribute('aria-label', t('languageLabel'));
+            document.querySelector('label[for="languageSelect"]').textContent = t('languageLabel');
+            document.querySelector('label[for="downloadScale"]').textContent = t('exportScale');
+            downloadScale.querySelector('[value="1"]').textContent = t('scaleStandard');
+            downloadScale.querySelector('[value="2"]').textContent = t('scaleHigh');
+            downloadScale.querySelector('[value="3"]').textContent = t('scaleVeryHigh');
+            downloadScale.querySelector('[value="4"]').textContent = `4× · ${t('scaleMaximum')}`;
+            downloadScale.querySelector('[value="5"]').textContent = `5× · ${t('scaleMaximum')}`;
+            setText('#downloadBtn span', 'downloadPng');
+            setIconLabel('.mobile-design-card > div:first-child h2', 'chooseStyle');
+            setIconLabel('.mobile-design-card > div:nth-child(2) h2', 'chooseModel');
+            setText('.mobile-design-card > div:nth-child(2) > p', 'modelDescription');
+            const presetTexts = {
+                cyber: ['presetCyberTitle', 'presetCyberDescription'],
+                minimal: ['presetMinimalTitle', 'presetMinimalDescription'],
+                circuit: ['presetCircuitTitle', 'presetCircuitDescription'],
+                corporate: ['presetCorporateTitle', 'presetCorporateDescription'],
+                custom: ['custom', 'chooseColors']
+            };
+            Object.entries(presetTexts).forEach(([preset, [titleKey, descriptionKey]]) => {
+                setText(`[data-preset="${preset}"] div:first-child`, titleKey);
+                setText(`[data-preset="${preset}"] div:nth-child(2)`, descriptionKey);
+            });
+            setIconLabel('#customColorControls > div:first-child', 'customPalette');
+            setText('#customColorControls > p', 'customPaletteDescription');
+            const colorKeys = ['backgroundOne', 'backgroundTwo', 'backgroundThree', 'accentOne', 'accentTwo', 'text'];
+            document.querySelectorAll('#customColorControls .custom-color-field > span').forEach((element, index) => setText(element, colorKeys[index]));
+            const templateTexts = {
+                stack: ['stackTitle', 'stackDescription'], showcase: ['showcaseTitle', 'showcaseDescription'], minimal: ['minimalTitle', 'minimalDescription'],
+                timeline: ['timelineTitle', 'timelineDescription'], credentials: ['credentialsTitle', 'credentialsDescription'], signature: ['signatureTitle', 'signatureDescription']
+            };
+            Object.entries(templateTexts).forEach(([template, [titleKey, descriptionKey]]) => {
+                setText(`[data-template="${template}"] div:first-child`, titleKey);
+                setText(`[data-template="${template}"] div:nth-child(2)`, descriptionKey);
+            });
+            setIconLabel('.mobile-content-card h2', 'personalize');
+            setInputLabel(inputName, 'fullName');
+            setInputLabel(inputSubtitle, 'jobSubtitle');
+            setInputLabel(inputInstitution, 'institution');
+            setInputLabel(inputSkills, 'technologies');
+            setText(inputSkills.parentElement.querySelector('p'), 'skillsHelp');
+            setIconLabel('.mobile-preview-card h2', 'preview');
+            setText('#fullscreenBtn span', isBannerFullscreen() ? 'exitFullscreen' : 'fullscreen');
+            exitFullscreenBtn.querySelector('span').textContent = t('exitFullscreen');
+            exitFullscreenBtn.title = t('exitFullscreen');
+            exitFullscreenBtn.setAttribute('aria-label', t('exitFullscreen'));
+            zoomOutBtn.title = t('zoomOut');
+            zoomOutBtn.setAttribute('aria-label', t('zoomOut'));
+            zoomInBtn.title = t('zoomIn');
+            zoomInBtn.setAttribute('aria-label', t('zoomIn'));
+            zoomResetBtn.title = t('fitBanner');
+            zoomResetBtn.setAttribute('aria-label', t('fitBanner'));
+            zoomResetBtn.textContent = t('fit');
+            document.querySelector('.fullscreen-controls').setAttribute('aria-label', t('zoomControls'));
+            const mobileGuide = document.querySelector('.mobile-preview-card details');
+            const mobileGuideSummary = mobileGuide.querySelector('summary');
+            const guideIcon = mobileGuideSummary.querySelector('i:first-child');
+            const guideChevron = mobileGuideSummary.querySelector('i:last-child');
+            [...mobileGuideSummary.childNodes].forEach(node => { if (node !== guideIcon && node !== guideChevron) node.remove(); });
+            mobileGuideSummary.insertBefore(document.createTextNode(` ${t('protectedPhotoArea')} `), guideChevron);
+            setText(mobileGuide.querySelector('p'), 'protectedPhotoDescription');
+            const desktopGuide = document.querySelector('.mobile-preview-card > .hidden.sm\\:flex > div');
+            desktopGuide.innerHTML = `<strong class="text-slate-200">${t('protectedQuestion')}</strong><br>${t('protectedAnswer')}`;
+            const toggleLabels = [
+                ['#toggleCodeBg', 'backgroundEffects'], ['#toggleAvatarGuide', 'showPhotoGuide'], ['#toggleAllLogosOnly', 'logoBadgesWithCategory'], ['#toggleLogosWithoutLabels', 'logoBadgesOnly'], ['#toggleInstitutionSubtitle', 'showInstitutionInSubtitle']
+            ];
+            toggleLabels.forEach(([selector, key]) => setText(document.querySelector(selector).closest('.flex').querySelector('span'), key));
+            const tipBox = linkedinHeadlineTip.parentElement;
+            setIconLabel(tipBox.querySelector('div'), 'linkedinTipTitle');
+            setText(tipBox.querySelector('p'), 'linkedinTipDescription');
+            linkedinHeadlineTip.title = t('clickToCopy');
+            setText('#institutionImageLabel', 'institutionImage');
+            setIconLabel('#institutionImageUploadLabel', 'selectImage');
+            institutionImageUrl.placeholder = t('imageUrlPlaceholder');
+            setText(useInstitutionImageUrl, 'useLink');
+            setText(skillImageControls.parentElement.querySelector('label'), 'technologyImages');
+            setText(skillImageControls.nextElementSibling, 'corsDescription');
+            setText('#toastMsg', 'initialToast');
+            updateLocalizedDefaultInputs();
+            updateDownloadScaleHint();
+            updateFullscreenButton();
+            updateLinkedInHeadlineTip();
+            renderSkillImageControls();
+            renderLogoScaleControls();
+            drawBanner();
+        }
 
         const PRESETS = {
             cyber: {
@@ -517,7 +728,7 @@
             const logoOnly = toggleAllLogosOnly.checked || toggleLogosWithoutLabels.checked;
             const hideBadgeText = toggleLogosWithoutLabels.checked;
             const items = [
-                { title: inputInstitution.value.trim() || "Instituição", sub: "Formação", type: "institution", image: institutionImage, imageScale: institutionImageScale, adjustableLogoSize: logoOnly, logoOnly, hideBadgeText },
+                { title: inputInstitution.value.trim() || t('institutionFallback'), sub: t('education'), type: "institution", image: institutionImage, imageScale: institutionImageScale, adjustableLogoSize: logoOnly, logoOnly, hideBadgeText },
                 ...getSkills().map(skill => ({ ...skill, image: skillImages.get(skill.key) || null, imageScale: skillImageScales.get(skill.key) || 1, adjustableLogoSize: logoOnly, logoOnly, hideBadgeText }))
             ];
             drawSelectedTemplate(config, items, width, height);
@@ -539,9 +750,9 @@
                 ctx.fillStyle = '#fca5a5';
                 ctx.font = '700 14px "Inter", sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('FOTO DE PERFIL', 200, 275);
+                ctx.fillText(t('photoProfile'), 200, 275);
                 ctx.font = '400 12px "Inter", sans-serif';
-                ctx.fillText('(Espaço reservado pelo LinkedIn)', 200, 295);
+                ctx.fillText(t('photoReserved'), 200, 295);
                 ctx.textAlign = 'left';
             }
             ctx.restore();
@@ -553,27 +764,27 @@
 
             if (currentTemplate === 'showcase') {
                 drawLogoShowcaseDecoration(config, width, height);
-                drawKicker(config, 'PERSONAL BRAND', contentX, 64);
+                drawKicker(config, t('personalBrand'), contentX, 64);
                 drawIdentity(config, contentX, 124, 151, 190, contentWidth, 46);
                 drawBadgeRow(config, items.map(item => ({ ...item, logoOnly: true })), contentX, 245, contentWidth);
             } else if (currentTemplate === 'minimal') {
                 drawMinimalIdentityDecoration(config, width, height);
-                drawKicker(config, 'PROFESSIONAL IDENTITY', contentX, 84);
+                drawKicker(config, t('professionalIdentity'), contentX, 84);
                 drawIdentity(config, contentX, 142, 170, 210, contentWidth, 48);
                 drawBadgeRow(config, items, contentX, 260, contentWidth);
             } else if (currentTemplate === 'timeline') {
                 drawTimelineDecoration(config, items.length, width, height);
-                drawKicker(config, 'CAREER TIMELINE', contentX, 56);
+                drawKicker(config, t('careerTimeline'), contentX, 56);
                 drawIdentity(config, contentX, 106, 132, 171, contentWidth, 42);
                 drawBadgeRow(config, items, contentX, 265, contentWidth);
             } else if (currentTemplate === 'credentials') {
                 drawCredentialStripDecoration(config, width, height);
-                drawKicker(config, 'CORE CREDENTIALS', contentX, 58);
+                drawKicker(config, t('coreCredentials'), contentX, 58);
                 drawIdentity(config, contentX, 112, 138, 177, contentWidth, 44);
                 drawBadgeRow(config, items, contentX, 250, contentWidth);
             } else if (currentTemplate === 'signature') {
                 drawSignatureDecoration(config, width, height);
-                drawKicker(config, 'PERSONAL BRAND', contentX, 71);
+                drawKicker(config, t('personalBrand'), contentX, 71);
                 drawIdentity(config, contentX, 145, 173, 213, contentWidth, 52);
                 drawBadgeRow(config, items, contentX, 272, contentWidth);
             } else {
@@ -584,10 +795,10 @@
         }
 
         function drawIdentity(config, x, nameY, lineY, subtitleY, maxWidth, nameSize) {
-            const nameText = inputName.value.trim() || 'Seu Nome Aqui';
-            const roleText = inputSubtitle.value.trim() || 'Seu subtítulo';
+            const nameText = inputName.value.trim() || t('nameFallback');
+            const roleText = inputSubtitle.value.trim() || t('roleFallback');
             const subtitleText = toggleInstitutionSubtitle.checked
-                ? `${roleText} • ${inputInstitution.value.trim() || 'Instituição'}`
+                ? `${roleText} • ${inputInstitution.value.trim() || t('institutionFallback')}`
                 : roleText;
             ctx.fillStyle = config.textColor;
             ctx.font = `800 ${nameSize}px "Inter", sans-serif`;
@@ -876,7 +1087,7 @@
                 .filter(Boolean)
                 .map(item => {
                     const [title, ...categoryParts] = item.split('|').map(part => part.trim());
-                    const sub = categoryParts.join(' | ') || 'Tecnologia';
+                    const sub = categoryParts.join(' | ') || t('technology');
                     return {
                         title,
                         sub,
@@ -888,7 +1099,7 @@
         }
 
         function updateLinkedInHeadlineTip() {
-            const role = inputSubtitle.value.trim() || 'Seu cargo';
+            const role = inputSubtitle.value.trim() || t('jobFallback');
             const institution = inputInstitution.value.trim();
             const skills = getSkills(4).map(skill => skill.title);
             const identity = institution ? `${role} @ ${institution}` : role;
@@ -1009,6 +1220,7 @@
         // Live Redraw Listeners
         [inputName, inputSubtitle, inputInstitution, inputSkills].forEach(input => {
             input.addEventListener('input', () => {
+                userEditedInputs.add(input);
                 if (input === inputSkills) renderSkillImageControls();
                 updateLinkedInHeadlineTip();
                 renderLogoScaleControls();
@@ -1073,24 +1285,25 @@
         function renderSkillImageControls() {
             const skills = getSkills(Infinity);
             if (!skills.length) {
-                skillImageControls.innerHTML = '<p class="rounded-lg border border-dashed border-slate-700 px-3 py-2 text-xs text-slate-500">Digite uma tecnologia para criar seu campo de imagem.</p>';
+                skillImageControls.innerHTML = `<p class="rounded-lg border border-dashed border-slate-700 px-3 py-2 text-xs text-slate-500">${t('noTechnology')}</p>`;
                 return;
             }
 
             skillImageControls.innerHTML = skills.map((skill, index) => {
                 const imageUrl = skillImageUrls.get(skill.key) || '';
                 const isVisible = index < 6;
-                const imageStatus = skillImageUrls.has(skill.key) ? 'Link aplicado' : skillImages.has(skill.key) ? 'Upload aplicado' : 'Sem imagem';
+                const imageStatus = skillImageUrls.has(skill.key) ? t('linkApplied') : skillImages.has(skill.key) ? t('uploadApplied') : t('noImage');
                 return `
                     <div class="rounded-xl border border-slate-800 bg-slate-950/60 p-3 space-y-2" data-skill-key="${escapeHtml(skill.key)}">
                         <div class="flex items-center justify-between gap-2">
                             <span class="text-xs font-semibold text-slate-200">${escapeHtml(skill.title)}</span>
-                            <span class="text-[10px] font-mono text-slate-500">${escapeHtml(skill.sub)} · ${imageStatus}${isVisible ? '' : ' · fora do limite do banner'}</span>
+                            <span class="text-[10px] font-mono text-slate-500">${escapeHtml(skill.sub)} · ${escapeHtml(imageStatus)}${isVisible ? '' : ` · ${t('outsideBannerLimit')}`}</span>
                         </div>
-                        <input type="file" accept="image/*" class="skill-image-file block w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-cyan-500/15 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-cyan-300 hover:file:bg-cyan-500/25">
+                        <input id="skill-image-${index}" type="file" accept="image/*" class="skill-image-file sr-only">
+                        <label for="skill-image-${index}" class="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-cyan-500/15 px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-500/25"><i class="fa-solid fa-image"></i> ${t('selectImage')}</label>
                         <div class="flex flex-col gap-2 sm:flex-row">
-                            <input type="url" value="${escapeHtml(imageUrl)}" placeholder="https://exemplo.com/logo.png" class="skill-image-url min-w-0 flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
-                            <button type="button" class="use-skill-image-url w-full shrink-0 rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-cyan-300 hover:bg-slate-700 sm:w-auto">Usar link</button>
+                            <input type="url" value="${escapeHtml(imageUrl)}" placeholder="${escapeHtml(t('skillImageUrlPlaceholder'))}" class="skill-image-url min-w-0 flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500">
+                            <button type="button" class="use-skill-image-url w-full shrink-0 rounded-lg bg-slate-800 px-3 py-2 text-xs font-semibold text-cyan-300 hover:bg-slate-700 sm:w-auto">${t('useLink')}</button>
                         </div>
                     </div>`;
             }).join('');
@@ -1101,7 +1314,7 @@
             if (institutionImage) {
                 items.push({
                     key: 'institution',
-                    title: inputInstitution.value.trim() || 'Instituição',
+                    title: inputInstitution.value.trim() || t('institutionFallback'),
                     scale: institutionImageScale
                 });
             }
@@ -1129,9 +1342,9 @@
             logoScaleControls.innerHTML = `
                 <div class="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-cyan-300">
                     <i class="fa-solid fa-sliders"></i>
-                    Ajuste ao vivo das logos
+                    ${t('logoAdjustment')}
                 </div>
-                <p class="mb-3 text-[11px] leading-relaxed text-slate-400">Aparecem somente logos já carregadas quando um modo de selos com logo está ativo. O ajuste é individual e reflete na prévia na hora.</p>
+                <p class="mb-3 text-[11px] leading-relaxed text-slate-400">${t('logoAdjustmentDescription')}</p>
                 <div class="space-y-3">
                     ${loadedItems.map(item => {
                         const percentage = Math.round(item.scale * 100);
@@ -1141,7 +1354,7 @@
                                     <span class="truncate">${escapeHtml(item.title)}</span>
                                     <output class="logo-scale-value font-mono text-cyan-300">${percentage}%</output>
                                 </span>
-                                <input type="range" min="50" max="300" value="${percentage}" data-logo-key="${escapeHtml(item.key)}" class="logo-scale-input w-full accent-cyan-400" aria-label="Tamanho da logo ${escapeHtml(item.title)}">
+                                <input type="range" min="50" max="300" value="${percentage}" data-logo-key="${escapeHtml(item.key)}" class="logo-scale-input w-full accent-cyan-400" aria-label="${escapeHtml(t('logoSize'))} ${escapeHtml(item.title)}">
                             </label>`;
                     }).join('')}
                 </div>`;
@@ -1153,9 +1366,9 @@
                 institutionImage = image;
                 renderLogoScaleControls();
                 drawBanner();
-                showToast('Logo da instituição atualizado.');
+                showToast(t('institutionLogoUpdated'));
             } else {
-                showToast('Não foi possível carregar essa imagem.');
+                showToast(t('imageLoadFailed'));
             }
         });
 
@@ -1165,9 +1378,9 @@
                 institutionImage = image;
                 renderLogoScaleControls();
                 drawBanner();
-                showToast('Imagem da instituição atualizada pelo link.');
+                showToast(t('institutionLinkUpdated'));
             } else {
-                showToast('Não foi possível usar esse link. Verifique se a imagem é pública e se a URL está correta.');
+                showToast(t('imageLinkFailed'));
             }
         });
 
@@ -1181,9 +1394,9 @@
                 renderSkillImageControls();
                 renderLogoScaleControls();
                 drawBanner();
-                showToast('Imagem da tecnologia atualizada.');
+                showToast(t('technologyImageUpdated'));
             } else {
-                showToast('Não foi possível carregar essa imagem.');
+                showToast(t('imageLoadFailed'));
             }
         });
 
@@ -1211,9 +1424,9 @@
                 renderSkillImageControls();
                 renderLogoScaleControls();
                 drawBanner();
-                showToast('Imagem da tecnologia atualizada pelo link.');
+                showToast(t('technologyLinkUpdated'));
             } else {
-                showToast('Não foi possível usar esse link. Verifique se a imagem é pública e se a URL está correta.');
+                showToast(t('imageLinkFailed'));
             }
         });
 
@@ -1246,7 +1459,7 @@
             const width = 1584 * scale;
             const height = 396 * scale;
             downloadScaleHint.textContent = `${scale}× = ${width} × ${height} px`;
-            downloadScale.title = `${scale}× exporta em ${width} × ${height} px`;
+            downloadScale.title = t('exportTitle', { scale, width, height });
         }
 
         downloadScale.addEventListener('change', updateDownloadScaleHint);
@@ -1269,9 +1482,9 @@
                 link.download = `banner-linkedin-dev-${exportScale}x.png`;
                 link.href = dataURL;
                 link.click();
-                showToast(`Banner PNG (${exportWidth}×${exportHeight} · ${exportScale}×) baixado com sucesso!`);
+                showToast(t('exportSuccess', { width: exportWidth, height: exportHeight, scale: exportScale }));
             } catch {
-                showToast('Não foi possível exportar. Verifique se todas as imagens usadas permitem exportação.');
+                showToast(t('exportFailed'));
             } finally {
                 canvas = originalCanvas;
                 ctx = originalContext;
@@ -1383,8 +1596,8 @@
         function updateFullscreenButton() {
             const isFullscreen = isBannerFullscreen();
             fullscreenBtn.querySelector('i').className = isFullscreen ? 'fa-solid fa-compress' : 'fa-solid fa-expand';
-            fullscreenBtn.querySelector('span').textContent = isFullscreen ? 'Sair da tela cheia' : 'Tela cheia';
-            fullscreenBtn.title = isFullscreen ? 'Sair da visualização em tela cheia' : 'Visualizar em tela cheia';
+            fullscreenBtn.querySelector('span').textContent = isFullscreen ? t('exitFullscreen') : t('fullscreen');
+            fullscreenBtn.title = isFullscreen ? t('exitFullscreenTitle') : t('enterFullscreenTitle');
             fullscreenBtn.setAttribute('aria-label', fullscreenBtn.title);
         }
 
@@ -1393,7 +1606,7 @@
                 if (document.fullscreenElement) await document.exitFullscreen();
                 else await bannerPreview.requestFullscreen();
             } catch {
-                showToast('A visualização em tela cheia não está disponível neste navegador.');
+                showToast(t('fullscreenUnavailable'));
             }
         });
 
@@ -1421,12 +1634,17 @@
         });
 
         window.onload = function() {
-            renderSkillImageControls();
-            updateLinkedInHeadlineTip();
-            renderLogoScaleControls();
-            updateDownloadScaleHint();
+            // Desenha a prévia-base primeiro, para o canvas nunca iniciar vazio caso
+            // algum recurso opcional da interface (como a tradução) falhe ao carregar.
             drawBanner();
+            applyLanguage();
         };
+
+        languageSelect.addEventListener('change', () => {
+            currentLanguage = languageSelect.value === 'en' ? 'en' : 'pt';
+            saveLanguage(currentLanguage);
+            applyLanguage();
+        });
     </script>
 </body>
 </html>
