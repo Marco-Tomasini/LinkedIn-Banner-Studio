@@ -67,5 +67,5 @@ Este projeto está licenciado sob a [MIT License](LICENSE).
 
 ## Créditos
 
-- Base inicial do projeto: **Isabela de Oliveira** (`Isabela_oliveira3@estudante.sesisenai.org.br`).
-- Evoluções, funcionalidades e aprimoramentos posteriores: mantenedor(a) atual do repositório.
+- Base inicial do projeto: [Isabela de Oliveira](https://github.com/isabela728).
+- Evoluções, funcionalidades e aprimoramentos posteriores: [Marco Tomasini](https://github.com/marco-tomasini).
